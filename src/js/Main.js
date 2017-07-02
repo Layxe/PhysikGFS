@@ -8,39 +8,42 @@
  *
  */
 
-// ### Globale Einstellungen ######################################## //
+// ### Globale Einstellungen ########################################################################################### //
 
 const RESOLUTION = 2;
 
-// ### Variablen #################################################### //
+// ### Variablen ####################################################################################################### //
 
+// ~~~ FPS Zähler ~~~ //
 var oldTime = 0;
 var FPS     = 0;
 
 
-// ### Display ###################################################### //
+// ### Display ######################################################################################################### //
 
 /**
- * Statisches Display
+ * Display
+ * --------------------------
+ * Objekt, welches für die grundlegende Interaktion
+ * mit der Zeichenoberfläche zuständig ist
  * @param element canvas element
  * @constructor
  */
 
-function StDisplay(element) {
+var Display = {
 
-  this.element = element;
-  this.ctx     = element.getContext('2d');
+  element: document.getElementById('display'),
+  ctx:     document.getElementById('display').getContext('2d')
 
-}
+};
 
 /**
  * Initialisierungsfunktion
  * ------------------------------------------
  * Passe das Display den Rahmenbedingungen an
- * und starte die Animationsschleife
  */
 
-StDisplay.prototype.init = function init() {
+Display.init = function init() {
 
   var wrapper = document.getElementById('display-wrapper');
 
@@ -59,7 +62,7 @@ StDisplay.prototype.init = function init() {
  * @param color Farbe des Punktes
  */
 
-StDisplay.prototype.drawPoint = function drawPoint(point, amplitude, color) {
+Display.drawPoint = function drawPoint(point, amplitude, color) {
 
   var x = point.x;
   var y = 250+Math.sin(point.angle) * amplitude;
@@ -73,12 +76,44 @@ StDisplay.prototype.drawPoint = function drawPoint(point, amplitude, color) {
 };
 
 /**
+ * Zeichne einen Punkt der auf einer Welle liegt.
+ * Wird zum Hervorheben verwendet
+ * @param point
+ * @param amplitude
+ * @param color
+ * @param radius
+ */
+
+Display.drawPointOnWave = function drawPointOnWave(point,amplitude,color,radius) {
+
+  var x = point.x;
+  var y = 250+Math.sin(point.angle) * amplitude;
+
+  this.ctx.fillStyle = color;
+  this.ctx.beginPath();
+  this.ctx.arc(x,y,radius,0, 2*Math.PI);
+  this.ctx.fillStyle = 'black';
+  this.ctx.fill();
+
+};
+
+Display.drawSimplePoint = function drawSimplePoint(x,y,color,radius) {
+
+  this.ctx.fillStyle = color;
+  this.ctx.beginPath();
+  this.ctx.arc(x,y,radius,0, 2*Math.PI);
+  this.ctx.fillStyle = 'black';
+  this.ctx.fill();
+
+};
+
+/**
  * Zeichne eine Welle, die aus sich aus mehreren Wellen zusammensetzt
  * @param waves
  * @param color
  */
 
-StDisplay.prototype.drawCombinedWave = function drawCombinedWave(waves, color) {
+Display.drawCombinedWave = function drawCombinedWave(waves, color) {
 
   this.ctx.beginPath();
   this.ctx.strokeStyle = color;
@@ -118,43 +153,64 @@ StDisplay.prototype.drawCombinedWave = function drawCombinedWave(waves, color) {
 
 };
 
-StDisplay.prototype.drawInterface = function drawInterface() {
+/**
+ * Zeichne wichtige Element wie beispielsweise die X und Y Achse
+ */
 
+Display.drawInterface = function drawInterface() {
+
+  var y = 2;
+
+  this.ctx.fillStyle = 'black';
+  this.ctx.strokeStyle = 'black';
+  this.ctx.lineWidth = 2;
+  this.ctx.font = '20px Arial';
+
+  // X-Achse
   this.ctx.beginPath();
   this.ctx.moveTo(0,250);
   this.ctx.lineTo(Display.width, 250);
-  this.ctx.strokeStyle = 'black';
-  this.ctx.lineWidth = 2;
+  this.ctx.stroke();
+  // Y-Achse
+  this.ctx.beginPath();
+  for(var i = 50; i <= 500; i+=100) {
+    this.ctx.moveTo(0, i);
+    this.ctx.lineTo(15,i);
+
+    this.ctx.fillText(y.toString(),0,i-10);
+    y--;
+  }
   this.ctx.stroke();
 
 };
 
-StDisplay.prototype.getPoints = function getPoints() {
+Display.getPoints = function getPoints() {
 
   return Math.round(Display.width / RESOLUTION);
 
 };
 
-const Display = new StDisplay(document.getElementById('display'));
+// ### Welt ############################################################################################################ //
 
-// ### Welt ######################################################### //
-
-/**
- * Welt, die die Punkte beinhaltet
+/** Welt
+ * ---------------------------
+ * In der Welt werden alle Wellen gespeichert
+ * um eine möglichst übersichtliche Referenz
+ * zu erhalten
  * @constructor
  */
 
-function StWorld() {
+var World = {
 
-  this.waves = [];
+  waves: []
 
-}
+};
 
 /**
  * Zeichne alle Punkte, die in der Welt existieren
  */
 
-StWorld.prototype.drawWaves = function drawWaves() {
+World.drawWaves = function drawWaves() {
 
   for(var i = 0; i < this.waves.length; i++) {
 
@@ -169,21 +225,27 @@ StWorld.prototype.drawWaves = function drawWaves() {
  * @param c Ausbreitungsgeschwindigkeit
  * @param frequency Frequenz
  * @param amplitude Amplitude
- * @param index Speicherort
  */
 
-StWorld.prototype.createWave = function createWave(c,frequency,amplitude) {
+World.createWave = function createWave(c,frequency,amplitude) {
 
   var wave = new Wave(c,frequency,amplitude);
-  World.waves.push(wave);
+  this.waves.push(wave);
   return wave;
 
 };
 
-StWorld.prototype.createCombinedWave = function createCombinedWave(waves) {
+/**
+ * Erstelle eine neue Welle, die aus der Überlagerung
+ * von mehreren Wellen ensteht
+ * @param waves
+ * @returns {CombinedWave}
+ */
+
+World.createCombinedWave = function createCombinedWave(waves) {
 
   var cw = new CombinedWave(waves);
-  World.waves.push(cw);
+  this.waves.push(cw);
   return cw;
 
 };
@@ -192,18 +254,18 @@ StWorld.prototype.createCombinedWave = function createCombinedWave(waves) {
  * Animiere alle Wellen
  */
 
-StWorld.prototype.simulate = function simulate() {
+World.simulate = function simulate() {
 
   for(var i = 0; i < this.waves.length; i++) {
 
     if(this.waves[i] instanceof Wave)
-        World.waves[i].simulate();
+        this.waves[i].simulate();
 
   }
 
 };
 
-// ### Welle ######################################################## //
+// ### Welle ########################################################################################################### //
 
 /** Wellenobjekt
  * --------------------------
@@ -295,6 +357,7 @@ Wave.prototype.setTime = function setTime(time) {
 
     var point;
 
+    // Bestimme den Punkt abhängig von der Richtung
     if(this.reverse) {
 
       point = this.points[this.points.length - (i+1)];
@@ -366,7 +429,7 @@ function Point(x,y) {
 
 }
 
-// ### Kombinierte Welle ############################################ //
+// ### Kombinierte Welle ############################################################################################### //
 
 function CombinedWave(waves) {
 
@@ -382,7 +445,143 @@ CombinedWave.prototype.draw = function draw() {
 
 };
 
-// ### Nützliche Funktionen ######################################### //
+// ### Zeigermodell #################################################################################################### //
+
+/**
+ * Erstelle ein neues Zeigermodell
+ * @param element Zeichencanvas
+ * @param waves   Welle(n), die dargestellt werden
+ * @constructor
+ */
+
+function Circle(element, waves) {
+
+  this.waves = waves;
+  this.element = element;
+  this.ctx     = this.element.getContext('2d');
+  this.visible = true;
+
+}
+
+/**
+ * Setze die dargestellten Wellen
+ * @param waves {Array}
+ */
+
+Circle.prototype.setWaves = function setWaves(waves) {
+  this.waves = waves;
+};
+
+Circle.prototype.toggle = function toggle() {
+
+  if(this.visible) {
+    this.element.style.display = 'none';
+    Display.element.style.left = '0';
+  } else {
+    this.element.style.display = 'block';
+    Display.element.style.left = '500px';
+  }
+
+  this.visible = !this.visible;
+
+};
+
+/**
+ * Zeichne den Kreis, welche den Punkt
+ * pointIndex verwendet
+ * @param pointIndex Zu zeichnender Index des Punktes
+ */
+
+Circle.prototype.draw = function draw(pointIndex) {
+
+  if(this.visible && this.waves != null) {
+
+    var gesY         = 0;
+    var gesAmplitude = 0;
+    var marginLeft;
+    var x;
+    var y;
+
+    this.ctx.clearRect(0,0,500,500);
+
+
+    for(var i = 0; i < this.waves.length; i++) {
+      gesAmplitude += this.waves[i].amplitude;
+    }
+
+    marginLeft = 490 - gesAmplitude;
+
+    x = marginLeft;
+    y = 250;
+
+    this.ctx.lineWidth = 3;
+
+    for(var i = 0; i < this.waves.length; i++) {
+
+      var wave  = this.waves[i];
+      var point = wave.points[pointIndex];
+      var angle = point.angle;
+
+      var newX = -Math.cos(angle)*wave.amplitude+marginLeft;
+      var newY = Math.sin(angle)*wave.amplitude+250;
+
+      this.ctx.beginPath();
+      this.ctx.strokeStyle = wave.color;
+
+      // Zeichne den Pfeil
+      if(i != 0) {
+        drawArrow(this.ctx,x,y,newX-marginLeft+x,newY-250+y); // Anschließende Pfeile
+      } else {
+        drawArrow(this.ctx, x,y, newX, newY); // Erster Pfeil
+      }
+
+      this.ctx.stroke();
+
+      x = newX;
+      y = newY;
+
+      // Hebe den Punkt hervor
+      Display.drawPointOnWave(point, wave.amplitude, wave.color, 5);
+
+      gesY += newY;
+
+    }
+
+
+    // Zeichne den Kreis
+    this.ctx.lineWidth = 2;
+    this.ctx.strokeStyle = 'black';
+
+    this.ctx.beginPath();
+    this.ctx.arc(490-gesAmplitude, 250, gesAmplitude+3, 0, 2*Math.PI);
+    this.ctx.stroke();
+
+
+  }
+
+};
+
+// ### Nützliche Funktionen ############################################################################################ //
+
+/**
+ * Zeichne einen Pfeil auf einem JSCanvas
+ * @author Titus Cieslewski http://stuff.titus-c.ch/arrow.html
+ * @param context
+ * @param fromx
+ * @param fromy
+ * @param tox
+ * @param toy
+ */
+
+function drawArrow(context, fromx, fromy, tox, toy){
+  var headlen = 10;   // length of head in pixels
+  var angle = Math.atan2(toy-fromy,tox-fromx);
+  context.moveTo(fromx, fromy);
+  context.lineTo(tox, toy);
+  context.lineTo(tox-headlen*Math.cos(angle-Math.PI/6),toy-headlen*Math.sin(angle-Math.PI/6));
+  context.moveTo(tox, toy);
+  context.lineTo(tox-headlen*Math.cos(angle+Math.PI/6),toy-headlen*Math.sin(angle+Math.PI/6));
+}
 
 function resetEverything() {
 
@@ -394,7 +593,7 @@ function resetEverything() {
 
 }
 
-// ### Programmablauf ############################################### //
+// ### Programmablauf ################################################################################################## //
 
 /**
  * Programmloop
@@ -407,10 +606,13 @@ function loop() {
 
   Display.ctx.clearRect(0,0,Display.width,Display.height);
 
-  World.drawWaves();  // Zeichne die Punkte der Wellen
+  World.drawWaves();  // Zeichne die erstellten Wellen
   World.simulate();   // Aktualisiere die Wellen
 
-  Display.drawInterface();
+  Display.drawInterface(); // Zeichne das Koordinatensystem und weitere
+                           // Elemente
+
+  circle.draw(50);
 
   // ~~~ Messe die Bilder pro Sekunde ~~~ //
   FPS++;
@@ -427,15 +629,20 @@ function loop() {
 
 Display.init();
 
-const World = new StWorld();
-
-World.createWave(2,0.005,100);
 World.createWave(1,0.005,100);
-World.waves[1].reverse = true;
+World.createWave(2,0.01,50);
 
 World.createCombinedWave([World.waves[0], World.waves[1]]);
+
+var circle = new Circle(document.getElementById('clock-display'));
+
+circle.setWaves([World.waves[0], World.waves[1]]);
 
 loop();
 
 World.waves[0].start();
 World.waves[1].start();
+World.waves[1].color = 'red';
+
+World.waves[0].phi = 3.14;
+
