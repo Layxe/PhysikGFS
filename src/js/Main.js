@@ -10,7 +10,7 @@
 
 // ### Globale Einstellungen ########################################################################################### //
 
-const RESOLUTION = 2;
+var RESOLUTION = 6;
 
 // ### Variablen ####################################################################################################### //
 
@@ -290,6 +290,13 @@ function Wave(c,frequency,amplitude) {
   this.color = 'orange';
   this.strokeWidth = 3;
 
+
+  this.init();
+
+}
+
+Wave.prototype.init = function init() {
+
   this.points = new Array(Display.getPoints());
 
   for(var i = 0; i < Display.getPoints(); i++) {
@@ -299,8 +306,7 @@ function Wave(c,frequency,amplitude) {
   }
 
 
-
-}
+};
 
 /**
  * Starte die Welle
@@ -375,7 +381,7 @@ Wave.prototype.setTime = function setTime(time) {
     var lambda = this.c * T;
 
     if (this.time * this.c >= i) {
-      point.angle = (2 * Math.PI * (this.time / T - i / lambda)) + this.phi; // Berechne den Winkel des Zeigers
+      point.angle = (2 * Math.PI * (this.time / T - (i*RESOLUTION) / lambda)) + this.phi; // Berechne den Winkel des Zeigers
       point.still = false;
     } else {
       point.still = true;
@@ -616,7 +622,11 @@ function loop() {
 
   // ~~~ Messe die Bilder pro Sekunde ~~~ //
   FPS++;
-  if(new Date().getTime() > oldTime + 1000) {
+  if(new Date().getTime() > oldTime + 200) {
+
+    FPS = FPS * 5;
+
+    document.getElementById('info-log').innerHTML = 'FPS: ' + FPS;
 
     FPS = 0;
     oldTime = new Date().getTime();
@@ -626,6 +636,35 @@ function loop() {
   window.requestAnimationFrame(loop);
 
 }
+
+var PerformanceAnalyzer = {
+  performanceScore: 0
+};
+
+PerformanceAnalyzer.checkPerformance = function checkPerformance() {
+
+  var a = 0;
+
+  for(var i = 0; i < 50000; i++) {
+    a += Math.random()*2;
+  }
+
+};
+
+PerformanceAnalyzer.execute = function execute() {
+
+  for(var i = 0; i < 10; i++) {
+
+    var time = new Date().getTime();
+    PerformanceAnalyzer.checkPerformance();
+    PerformanceAnalyzer.performanceScore += new Date().getTime() - time;
+  }
+
+  RESOLUTION = Math.round(PerformanceAnalyzer.performanceScore / 15);
+
+};
+
+PerformanceAnalyzer.execute();
 
 Display.init();
 
