@@ -8,18 +8,20 @@
  *
  */
 
-// ### Globale Einstellungen ########################################################################################### //
+// Globale Einstellungen
+// ##################################################################################################################### //
 
 var RESOLUTION = 6;
 
-// ### Variablen ####################################################################################################### //
+// Variablen 
+// ##################################################################################################################### //
 
 // ~~~ FPS Zähler ~~~ //
 var oldTime = 0;
 var FPS     = 0;
 
-
-// ### Display ######################################################################################################### //
+// Display
+// ##################################################################################################################### //
 
 /**
  * Display
@@ -190,7 +192,8 @@ Display.getPoints = function getPoints() {
 
 };
 
-// ### Welt ############################################################################################################ //
+// Welt
+// ##################################################################################################################### //
 
 /** Welt
  * ---------------------------
@@ -265,7 +268,8 @@ World.simulate = function simulate() {
 
 };
 
-// ### Welle ########################################################################################################### //
+// Welle
+// ##################################################################################################################### //
 
 /** Wellenobjekt
  * --------------------------
@@ -381,7 +385,7 @@ Wave.prototype.setTime = function setTime(time) {
     var lambda = this.c * T;
 
     if (this.time * this.c >= i) {
-      point.angle = (2 * Math.PI * (this.time / T - (i*RESOLUTION) / lambda)) + this.phi; // Berechne den Winkel des Zeigers
+      point.setAngle((2 * Math.PI * (this.time / T - (i*RESOLUTION) / lambda)) + this.phi); // Berechne den Winkel des Zeigers
       point.still = false;
     } else {
       point.still = true;
@@ -435,7 +439,16 @@ function Point(x,y) {
 
 }
 
-// ### Kombinierte Welle ############################################################################################### //
+Point.prototype.setAngle = function addAngle(angle) {
+
+  //var flooredAngle = Math.floor(angle / (2*Math.PI));
+  //angle            = angle - flooredAngle;
+  this.angle       = angle;
+
+};
+
+// Kombinierte Welle
+// ##################################################################################################################### //
 
 function CombinedWave(waves) {
 
@@ -451,7 +464,8 @@ CombinedWave.prototype.draw = function draw() {
 
 };
 
-// ### Zeigermodell #################################################################################################### //
+// Zeigermodell
+// ##################################################################################################################### //
 
 /**
  * Erstelle ein neues Zeigermodell
@@ -462,10 +476,12 @@ CombinedWave.prototype.draw = function draw() {
 
 function Circle(element, waves) {
 
-  this.waves = waves;
-  this.element = element;
-  this.ctx     = this.element.getContext('2d');
-  this.visible = true;
+  this.waves        = waves;
+  this.element      = element;
+  this.ctx          = this.element.getContext('2d');
+  this.visible      = true;
+  this.gesAmplitude = 0;
+  this.showAngle    = true;
 
 }
 
@@ -515,6 +531,15 @@ Circle.prototype.draw = function draw(pointIndex) {
       gesAmplitude += this.waves[i].amplitude;
     }
 
+    if(this.gesAmplitude != gesAmplitude) {
+
+      this.gesAmplitude = gesAmplitude;
+      console.log(gesAmplitude - 500);
+      this.element.style.left = (gesAmplitude - 250) + 'px';
+
+    }
+
+
     marginLeft = 490 - gesAmplitude;
 
     x = marginLeft;
@@ -534,6 +559,14 @@ Circle.prototype.draw = function draw(pointIndex) {
       this.ctx.beginPath();
       this.ctx.strokeStyle = wave.color;
 
+      if(this.showAngle) {
+
+        this.ctx.beginPath();
+        this.ctx.arc(x,y,wave.amplitude / 2, angle, 0, true);
+        this.ctx.stroke();
+
+      }
+
       // Zeichne den Pfeil
       if(i != 0) {
         drawArrow(this.ctx,x,y,newX-marginLeft+x,newY-250+y); // Anschließende Pfeile
@@ -551,6 +584,7 @@ Circle.prototype.draw = function draw(pointIndex) {
 
       gesY += newY;
 
+
     }
 
 
@@ -567,7 +601,8 @@ Circle.prototype.draw = function draw(pointIndex) {
 
 };
 
-// ### Nützliche Funktionen ############################################################################################ //
+// Nützliche Funktionen 
+// ##################################################################################################################### //
 
 /**
  * Zeichne einen Pfeil auf einem JSCanvas
@@ -599,7 +634,8 @@ function resetEverything() {
 
 }
 
-// ### Programmablauf ################################################################################################## //
+// Programmablauf 
+// ##################################################################################################################### //
 
 /**
  * Programmloop
@@ -669,19 +705,19 @@ PerformanceAnalyzer.execute();
 Display.init();
 
 World.createWave(1,0.005,100);
-World.createWave(2,0.01,50);
+//World.createWave(2,0.01,50);
 
-World.createCombinedWave([World.waves[0], World.waves[1]]);
+//World.createCombinedWave([World.waves[0], World.waves[1]]);
 
 var circle = new Circle(document.getElementById('clock-display'));
 
-circle.setWaves([World.waves[0], World.waves[1]]);
+circle.setWaves([World.waves[0]]);
 
 loop();
 
 World.waves[0].start();
-World.waves[1].start();
-World.waves[1].color = 'red';
+//World.waves[1].start();
+//World.waves[1].color = 'red';
 
 World.waves[0].phi = 3.14;
 
