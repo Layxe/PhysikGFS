@@ -29,7 +29,6 @@ var FPS     = 0;
  * Objekt, welches für die grundlegende Interaktion
  * mit der Zeichenoberfläche zuständig ist
  * @param element canvas element
- * @constructor
  */
 
 var Display = {
@@ -67,7 +66,7 @@ Display.init = function init() {
 Display.drawPoint = function drawPoint(point, amplitude, color) {
 
   var x = point.x;
-  var y = 250+Math.sin(point.angle) * amplitude;
+  var y = 250+(-Math.sin(point.angle) * amplitude);
 
   this.ctx.fillStyle = color;
   this.ctx.fillRect(x,y, 1, 1);
@@ -89,7 +88,7 @@ Display.drawPoint = function drawPoint(point, amplitude, color) {
 Display.drawPointOnWave = function drawPointOnWave(point,amplitude,color,radius) {
 
   var x = point.x;
-  var y = 250+Math.sin(point.angle) * amplitude;
+  var y = 250+(-Math.sin(point.angle) * amplitude);
 
   this.ctx.fillStyle = color;
   this.ctx.beginPath();
@@ -286,7 +285,7 @@ function Wave(c,frequency,amplitude) {
   this.c = c;
   this.frequency = frequency;
   this.amplitude = amplitude;
-  this.phi = 3.14*2;
+  this.phi = 0;
 
   this.reverse = false; // Läuft die Welle nach rechts
   this.running = false; // Wird die Welle fortlaufen simuliert
@@ -296,6 +295,18 @@ function Wave(c,frequency,amplitude) {
 
 
   this.init();
+
+}
+
+Wave.prototype.setPhi = function setPhi(phi) {
+
+  this.phi = phi;
+
+  for(var i = 0; i < this.points.length; i++) {
+
+    this.points[i].setAngle(this.phi);
+
+  }
 
 }
 
@@ -379,13 +390,16 @@ Wave.prototype.setTime = function setTime(time) {
     }
 
 
-    point.angle = 0; // Setze den Winkel zurück, falls die Welle neugestartet wird
+    point.setAngle(this.phi); // Setze den Winkel zurück, falls die Welle neugestartet wird
 
     var T = 1 / this.frequency;
     var lambda = this.c * T;
 
     if (this.time * this.c >= i) {
-      point.setAngle((2 * Math.PI * (this.time / T - (i*RESOLUTION) / lambda)) + this.phi); // Berechne den Winkel des Zeigers
+
+      var angle = (2 * Math.PI * (this.time / T - (i*RESOLUTION) / lambda)) + this.phi;
+
+      point.setAngle(angle); // Berechne den Winkel des Zeigers
       point.still = false;
     } else {
       point.still = true;
@@ -439,11 +453,28 @@ function Point(x,y) {
 
 }
 
+Point.prototype.breakAngleDown = function breakAngleDown() {
+
+  var debug = false;
+
+  if(this.x == 0) {
+    debug = true;
+  }
+
+  if(this.angle > 2 * Math.PI) {
+
+    var correctFactor = Math.floor(this.angle / (2 * Math.PI));
+
+    this.angle = this.angle - (correctFactor * (2*Math.PI));
+  
+  }
+
+}
+
 Point.prototype.setAngle = function addAngle(angle) {
 
-  //var flooredAngle = Math.floor(angle / (2*Math.PI));
-  //angle            = angle - flooredAngle;
   this.angle       = angle;
+  this.breakAngleDown();
 
 };
 
@@ -526,15 +557,16 @@ Circle.prototype.draw = function draw(pointIndex) {
 
     this.ctx.clearRect(0,0,500,500);
 
-
+    // Berechne die gesamte Amplitude
     for(var i = 0; i < this.waves.length; i++) {
       gesAmplitude += this.waves[i].amplitude;
     }
 
+    // Berechne die neue Position des Canvas, falls sich
+    // die maximale Amplitude ändert
     if(this.gesAmplitude != gesAmplitude) {
 
       this.gesAmplitude = gesAmplitude;
-      console.log(gesAmplitude - 500);
       this.element.style.left = (gesAmplitude - 250) + 'px';
 
     }
@@ -547,22 +579,26 @@ Circle.prototype.draw = function draw(pointIndex) {
 
     this.ctx.lineWidth = 3;
 
+    // Zeichne einen neuen Zeiger für jede Welle
     for(var i = 0; i < this.waves.length; i++) {
 
       var wave  = this.waves[i];
       var point = wave.points[pointIndex];
       var angle = point.angle;
 
-      var newX = -Math.cos(angle)*wave.amplitude+marginLeft;
-      var newY = Math.sin(angle)*wave.amplitude+250;
+      var newX = Math.cos(angle)*wave.amplitude+marginLeft;
+      var newY = -Math.sin(angle)*wave.amplitude+250;
 
       this.ctx.beginPath();
       this.ctx.strokeStyle = wave.color;
 
-      if(this.showAngle) {
+      if(this.showAngle && angle != wave.phi) {
 
         this.ctx.beginPath();
-        this.ctx.arc(x,y,wave.amplitude / 2, angle, 0, true);
+        var startAngle  = 2*Math.PI - wave.phi;
+        var circleAngle = 2*Math.PI - angle;
+
+        this.ctx.arc(x,y,wave.amplitude / 2, startAngle, circleAngle, true);
         this.ctx.stroke();
 
       }
@@ -634,6 +670,51 @@ function resetEverything() {
 
 }
 
+// Performance Analyzer
+// ##################################################################################################################### //
+
+/**
+ * Objekt um die Leistung des verwendeten Rechners einzuschätzen
+ */
+
+var PerformanceAnalyzer = {
+  performanceScore: 0,
+  dummyScore: 0
+};
+
+/**
+ * Funktion um die Rechenleistung einzuschätzen
+ */
+
+PerformanceAnalyzer.checkPerformance = function checkPerformance() {
+
+  var a = 0;
+
+  for(var i = 0; i < 50000; i++) {
+    a += Math.random()*2;
+  }
+
+  this.dummyScore = a;
+
+};
+
+/**
+ * Überprüfe die Rechenleistung 10x um einen Mittelwert zu bilden
+ */
+
+PerformanceAnalyzer.execute = function execute() {
+
+  for(var i = 0; i < 10; i++) {
+
+    var time = new Date().getTime();
+    PerformanceAnalyzer.checkPerformance();
+    PerformanceAnalyzer.performanceScore += new Date().getTime() - time;
+  }
+
+  RESOLUTION = Math.round(PerformanceAnalyzer.performanceScore / 15);
+
+};
+
 // Programmablauf 
 // ##################################################################################################################### //
 
@@ -648,8 +729,8 @@ function loop() {
 
   Display.ctx.clearRect(0,0,Display.width,Display.height);
 
-  World.drawWaves();  // Zeichne die erstellten Wellen
   World.simulate();   // Aktualisiere die Wellen
+  World.drawWaves();  // Zeichne die erstellten Wellen
 
   Display.drawInterface(); // Zeichne das Koordinatensystem und weitere
                            // Elemente
@@ -673,51 +754,25 @@ function loop() {
 
 }
 
-var PerformanceAnalyzer = {
-  performanceScore: 0
-};
-
-PerformanceAnalyzer.checkPerformance = function checkPerformance() {
-
-  var a = 0;
-
-  for(var i = 0; i < 50000; i++) {
-    a += Math.random()*2;
-  }
-
-};
-
-PerformanceAnalyzer.execute = function execute() {
-
-  for(var i = 0; i < 10; i++) {
-
-    var time = new Date().getTime();
-    PerformanceAnalyzer.checkPerformance();
-    PerformanceAnalyzer.performanceScore += new Date().getTime() - time;
-  }
-
-  RESOLUTION = Math.round(PerformanceAnalyzer.performanceScore / 15);
-
-};
 
 PerformanceAnalyzer.execute();
 
 Display.init();
 
 World.createWave(1,0.005,100);
-//World.createWave(2,0.01,50);
+World.createWave(2,0.01,50);
 
-//World.createCombinedWave([World.waves[0], World.waves[1]]);
+World.createCombinedWave([World.waves[0], World.waves[1]]);
 
 var circle = new Circle(document.getElementById('clock-display'));
 
-circle.setWaves([World.waves[0]]);
+//circle.setWaves(World.waves);
 
 loop();
 
 World.waves[0].start();
-//World.waves[1].start();
-//World.waves[1].color = 'red';
+World.waves[1].start();
+World.waves[1].color = 'red';
 
-World.waves[0].phi = 3.14;
+World.waves[0].setPhi(3.14*1.5);
 
