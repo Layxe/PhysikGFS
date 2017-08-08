@@ -298,6 +298,11 @@ function Wave(c,frequency,amplitude) {
 
 }
 
+/**
+ * Ändere die Phasenverschiebung der Welle
+ * @param Im Bogenmaß ( 0 - 2PI )
+ */
+
 Wave.prototype.setPhi = function setPhi(phi) {
 
   this.phi = phi;
@@ -309,6 +314,11 @@ Wave.prototype.setPhi = function setPhi(phi) {
   }
 
 }
+
+/**
+ * Initialisiere die Welle:
+ * - Erstelle die Punkte für die Welle
+ */
 
 Wave.prototype.init = function init() {
 
@@ -592,9 +602,11 @@ Circle.prototype.draw = function draw(pointIndex) {
       this.ctx.beginPath();
       this.ctx.strokeStyle = wave.color;
 
+      // Erstelle eine Kreisform zum Anzeigen der aktuellen Zeigerposition
       if(this.showAngle && angle != wave.phi) {
 
         this.ctx.beginPath();
+
         var startAngle  = 2*Math.PI - wave.phi;
         var circleAngle = 2*Math.PI - angle;
 
@@ -760,19 +772,25 @@ PerformanceAnalyzer.execute();
 Display.init();
 
 World.createWave(1,0.005,100);
-World.createWave(2,0.01,50);
+//World.createWave(2,0.01,50);
+World.createWave(1,0.1,50)
 
-World.createCombinedWave([World.waves[0], World.waves[1]]);
+//World.createCombinedWave([World.waves[0], World.waves[1]]);
 
 var circle = new Circle(document.getElementById('clock-display'));
 
-//circle.setWaves(World.waves);
+circle.setWaves([World.waves[0]]);
 
 loop();
 
 World.waves[0].start();
-World.waves[1].start();
-World.waves[1].color = 'red';
+//World.waves[1].start();
+//World.waves[1].color = 'red';
 
-World.waves[0].setPhi(3.14*1.5);
+World.waves[0].setPhi(Math.PI);
 
+/**
+ * TODO
+ * --------------------------
+ * - Wellenlänge anzeigen 
+ */
