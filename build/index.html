@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="mdc-typograhpy">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Physik GFS K1</title>
@@ -9,7 +9,7 @@
 <body>
 
     <div id="headbar">
-        <div class="button">+ &nbsp;Welle hinzufügen</div>
+        <div class="button" id="addwave-button">+ &nbsp;Welle hinzufügen</div>
         <div class="button"><span class="fa fa-cog"></span> &nbsp;Zeigermodell</div>
         <div class="button"><span class="fa fa-cog"></span> &nbsp;Inteferenz</div>
         <div id="info-log"></div>
@@ -28,9 +28,7 @@
     <script src="src/js/main-debug.js" type="text/javascript"></script>
 
     <script>
-    /*window.onload = function() {
-        initProgram();
-    };
+    /*
 
     document.addEventListener('keydown', function(e) {
         console.log(e);

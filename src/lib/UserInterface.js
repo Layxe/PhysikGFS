@@ -11,7 +11,7 @@ const CONTAINER = document.getElementById('container')
  * @class UserInterface
  */
 
-export default class UserInterface {
+export class UserInterface {
 
   // KONSTRUKTOR 
   // ###############################################################################################  //
@@ -267,7 +267,7 @@ export default class UserInterface {
     iconClose.setAttribute('class', 'fa fa-times-circle fa-2x');
 
     iconClose.addEventListener('click', () => {
-        _interface.onClose();
+        _interface.deleteWave();
     });
 
     this.head.style.borderLeft = '10px solid ' + World.waves[this.waveid].color;
@@ -276,6 +276,19 @@ export default class UserInterface {
     this.head.appendChild(iconClose);
     this.head.appendChild(iconEdit);
     this.head.appendChild(iconSettings);
+
+  }
+
+  /**
+   * Lösche die Welle
+   * 
+   * @memberof UserInterface
+   */
+
+  deleteWave() {
+
+    delete World.waves[this.waveid]
+    CONTAINER.removeChild(this.wrapper)
 
   }
 
@@ -296,5 +309,43 @@ export default class UserInterface {
     this.contentToggled = !this.contentToggled;
 
   }
+
+}
+
+let colors = [
+    'red', 'yellow', 'green', 'blue', 'purple', 'chartreuse', 'lightblue', '#00ff98'
+]
+
+export class StaticInterface {
+
+    static init() {
+
+        StaticInterface.index = 0;
+        StaticInterface.interfaces = []
+
+        StaticInterface.addWaveButton = document.getElementById('addwave-button')
+        StaticInterface.addWaveButton.addEventListener('click', () => {
+
+            StaticInterface.index += 1;
+            
+            let wave = World.createWave(1, 0.005, 100)
+           
+            console.log(World.waves)
+
+            try {
+                console.log(StaticInterface.index)
+                wave.color = colors[StaticInterface.index-1]
+            } catch(e) {
+
+            } finally {
+
+                wave.start()
+                wave.interface.update()
+
+            }
+
+        })
+
+    }
 
 }

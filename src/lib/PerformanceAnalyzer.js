@@ -28,6 +28,10 @@ export class PerformanceAnalyzer {
 
         RESOLUTION = Math.round(PerformanceAnalyzer.performanceScore / 15)
 
+        if(RESOLUTION <= 0) {
+            RESOLUTION = 1
+        }
+
     } 
 
 }

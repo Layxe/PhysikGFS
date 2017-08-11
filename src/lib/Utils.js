@@ -18,6 +18,12 @@ export let drawArrow = (context, fromx, fromy, tox, toy) => {
   context.lineTo(tox-headlen*Math.cos(angle+Math.PI/6),toy-headlen*Math.sin(angle+Math.PI/6));
 }
 
+/**
+ * Generiere ein neues DOM Element, welches ein font-awesome Icon darstellt
+ * 
+ * @param {*} classAttr 
+ */
+
 export let generateIcon = (classAttr) => {
 
     var icon = document.createElement('i');
@@ -26,6 +32,16 @@ export let generateIcon = (classAttr) => {
     return icon;
 
 }
+
+/**
+ * Erstelle ein neues Input[type=range] Element
+ * 
+ * @param {*} min Minimaler Wert
+ * @param {*} max Maximaler Wert
+ * @param {*} step 
+ * @param {*} value 
+ * @param {*} attribute 
+ */
 
 export let createSlider = (min,max,step,value,attribute) => {
     var slider = document.createElement('input');
@@ -39,6 +55,7 @@ export let createSlider = (min,max,step,value,attribute) => {
 
 /**
  * Erstelle einen neuen Labeltext
+ *
  * @param {string} label 
  * @param {string} value 
  * @returns {string}

@@ -33,6 +33,8 @@ class Wave {
 
     this.highlightedPoints = []
 
+    this.interface = null;
+
     this.init()
 
   }

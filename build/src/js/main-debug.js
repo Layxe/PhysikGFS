@@ -23,8 +23,6 @@ var _Circle2 = _interopRequireDefault(_Circle);
 
 var _UserInterface = require('./lib/UserInterface.js');
 
-var _UserInterface2 = _interopRequireDefault(_UserInterface);
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 // VARIABLEN 
@@ -44,6 +42,8 @@ var initProgram = function initProgram() {
 
   // Initialisiere die Anzeigefläche der Wellen
   _Display2.default.init();
+  // Initialisiere die statischen Bedienelemente
+  _UserInterface.StaticInterface.init();
 
   // Erstelle eine Anfangswelle
   _World2.default.createWave(1, 0.005, 100);
@@ -63,9 +63,6 @@ var initProgram = function initProgram() {
   _World2.default.waves[0].start();
   //World.waves[1].start();
   //World.waves[1].color = 'red';
-
-  var userinterface = new _UserInterface2.default(0);
-  userinterface.update();
 };
 
 window.onload = function () {
@@ -76,7 +73,7 @@ window.onload = function () {
 // PROGRAMMLOOP 
 // #################################################################################################  //
 
-function loop() {
+var loop = function loop() {
 
   _Display2.default.ctx.fillStyle = 'white';
   _Display2.default.ctx.fillRect(0, 0, _Display2.default.width, _Display2.default.height);
@@ -103,7 +100,7 @@ function loop() {
   }
 
   window.requestAnimationFrame(loop);
-}
+};
 
 },{"./lib/Circle.js":2,"./lib/Display.js":3,"./lib/PerformanceAnalyzer.js":4,"./lib/Point.js":5,"./lib/UserInterface.js":6,"./lib/Wave.js":8,"./lib/World.js":9}],2:[function(require,module,exports){
 'use strict';
@@ -543,6 +540,10 @@ var PerformanceAnalyzer = exports.PerformanceAnalyzer = function () {
                         }
 
                         exports.RESOLUTION = RESOLUTION = Math.round(PerformanceAnalyzer.performanceScore / 15);
+
+                        if (RESOLUTION <= 0) {
+                                exports.RESOLUTION = RESOLUTION = 1;
+                        }
                 }
         }]);
 
@@ -607,6 +608,7 @@ exports.default = Point;
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
+exports.StaticInterface = exports.UserInterface = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -631,7 +633,7 @@ var CONTAINER = document.getElementById('container');
  * @class UserInterface
  */
 
-var UserInterface = function () {
+var UserInterface = exports.UserInterface = function () {
 
     // KONSTRUKTOR 
     // ###############################################################################################  //
@@ -884,7 +886,7 @@ var UserInterface = function () {
             iconClose.setAttribute('class', 'fa fa-times-circle fa-2x');
 
             iconClose.addEventListener('click', function () {
-                _interface.onClose();
+                _interface.deleteWave();
             });
 
             this.head.style.borderLeft = '10px solid ' + _World2.default.waves[this.waveid].color;
@@ -893,6 +895,20 @@ var UserInterface = function () {
             this.head.appendChild(iconClose);
             this.head.appendChild(iconEdit);
             this.head.appendChild(iconSettings);
+        }
+
+        /**
+         * Lösche die Welle
+         * 
+         * @memberof UserInterface
+         */
+
+    }, {
+        key: 'deleteWave',
+        value: function deleteWave() {
+
+            delete _World2.default.waves[this.waveid];
+            CONTAINER.removeChild(this.wrapper);
         }
 
         /**
@@ -918,13 +934,49 @@ var UserInterface = function () {
     return UserInterface;
 }();
 
-exports.default = UserInterface;
+var colors = ['red', 'yellow', 'green', 'blue', 'purple', 'chartreuse', 'lightblue', '#00ff98'];
+
+var StaticInterface = exports.StaticInterface = function () {
+    function StaticInterface() {
+        _classCallCheck(this, StaticInterface);
+    }
+
+    _createClass(StaticInterface, null, [{
+        key: 'init',
+        value: function init() {
+
+            StaticInterface.index = 0;
+            StaticInterface.interfaces = [];
+
+            StaticInterface.addWaveButton = document.getElementById('addwave-button');
+            StaticInterface.addWaveButton.addEventListener('click', function () {
+
+                StaticInterface.index += 1;
+
+                var wave = _World2.default.createWave(1, 0.005, 100);
+
+                console.log(_World2.default.waves);
+
+                try {
+                    console.log(StaticInterface.index);
+                    wave.color = colors[StaticInterface.index - 1];
+                } catch (e) {} finally {
+
+                    wave.start();
+                    wave.interface.update();
+                }
+            });
+        }
+    }]);
+
+    return StaticInterface;
+}();
 
 },{"./PerformanceAnalyzer.js":4,"./Utils.js":7,"./World.js":9}],7:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
-    value: true
+  value: true
 });
 /**
  * Zeichne einen Pfeil auf einem JSCanvas
@@ -937,35 +989,52 @@ Object.defineProperty(exports, "__esModule", {
  */
 
 var drawArrow = exports.drawArrow = function drawArrow(context, fromx, fromy, tox, toy) {
-    var headlen = 10; // length of head in pixels
-    var angle = Math.atan2(toy - fromy, tox - fromx);
-    context.moveTo(fromx, fromy);
-    context.lineTo(tox, toy);
-    context.lineTo(tox - headlen * Math.cos(angle - Math.PI / 6), toy - headlen * Math.sin(angle - Math.PI / 6));
-    context.moveTo(tox, toy);
-    context.lineTo(tox - headlen * Math.cos(angle + Math.PI / 6), toy - headlen * Math.sin(angle + Math.PI / 6));
+  var headlen = 10; // length of head in pixels
+  var angle = Math.atan2(toy - fromy, tox - fromx);
+  context.moveTo(fromx, fromy);
+  context.lineTo(tox, toy);
+  context.lineTo(tox - headlen * Math.cos(angle - Math.PI / 6), toy - headlen * Math.sin(angle - Math.PI / 6));
+  context.moveTo(tox, toy);
+  context.lineTo(tox - headlen * Math.cos(angle + Math.PI / 6), toy - headlen * Math.sin(angle + Math.PI / 6));
 };
+
+/**
+ * Generiere ein neues DOM Element, welches ein font-awesome Icon darstellt
+ * 
+ * @param {*} classAttr 
+ */
 
 var generateIcon = exports.generateIcon = function generateIcon(classAttr) {
 
-    var icon = document.createElement('i');
-    icon.setAttribute('class', 'fa ' + classAttr);
-    icon.setAttribute('aria-hidden', 'true');
-    return icon;
+  var icon = document.createElement('i');
+  icon.setAttribute('class', 'fa ' + classAttr);
+  icon.setAttribute('aria-hidden', 'true');
+  return icon;
 };
 
+/**
+ * Erstelle ein neues Input[type=range] Element
+ * 
+ * @param {*} min Minimaler Wert
+ * @param {*} max Maximaler Wert
+ * @param {*} step 
+ * @param {*} value 
+ * @param {*} attribute 
+ */
+
 var createSlider = exports.createSlider = function createSlider(min, max, step, value, attribute) {
-    var slider = document.createElement('input');
-    slider.setAttribute('type', 'range');
-    slider.setAttribute('min', min);
-    slider.setAttribute('max', max);
-    slider.setAttribute('step', step);
-    slider.setAttribute('value', value);
-    return slider;
+  var slider = document.createElement('input');
+  slider.setAttribute('type', 'range');
+  slider.setAttribute('min', min);
+  slider.setAttribute('max', max);
+  slider.setAttribute('step', step);
+  slider.setAttribute('value', value);
+  return slider;
 };
 
 /**
  * Erstelle einen neuen Labeltext
+ *
  * @param {string} label 
  * @param {string} value 
  * @returns {string}
@@ -973,7 +1042,7 @@ var createSlider = exports.createSlider = function createSlider(min, max, step, 
 
 var getText = exports.getText = function getText(label, value) {
 
-    return '<div><span>' + label + ': </span>' + value + '</div>';
+  return '<div><span>' + label + ': </span>' + value + '</div>';
 };
 
 },{}],8:[function(require,module,exports){
@@ -1031,6 +1100,8 @@ var Wave = function () {
     this.strokeWidth = 3;
 
     this.highlightedPoints = [];
+
+    this.interface = null;
 
     this.init();
   }
@@ -1272,6 +1343,8 @@ var _Display = require('./Display.js');
 
 var _Display2 = _interopRequireDefault(_Display);
 
+var _UserInterface = require('./UserInterface.js');
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -1299,7 +1372,7 @@ var World = function () {
 
       for (var i = 0; i < World.waves.length; i++) {
 
-        World.waves[i].draw();
+        if (World.waves[i] != undefined) World.waves[i].draw();
       }
     }
 
@@ -1320,6 +1393,9 @@ var World = function () {
 
       var wave = new _Wave.Wave(c, frequency, amplitude);
       World.waves.push(wave);
+      console.log(World.waves);
+      wave.interface = new _UserInterface.UserInterface(World.waves.length - 1);
+      wave.interface.update();
       return wave;
     }
 
@@ -1357,6 +1433,9 @@ var World = function () {
         if (World.waves[i] instanceof _Wave.Wave) World.waves[i].simulate();
       }
     }
+  }, {
+    key: 'removeWave',
+    value: function removeWave(index) {}
   }]);
 
   return World;
@@ -1366,4 +1445,4 @@ World.waves = new Array();
 
 exports.default = World;
 
-},{"./Display.js":3,"./Wave.js":8}]},{},[1]);
+},{"./Display.js":3,"./UserInterface.js":6,"./Wave.js":8}]},{},[1]);

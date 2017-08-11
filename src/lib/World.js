@@ -1,5 +1,6 @@
 import {Wave, CombinedWave} from './Wave.js'
 import Display from './Display.js'
+import {UserInterface} from './UserInterface.js'
 
 // WELT 
 // #################################################################################################  //
@@ -17,7 +18,9 @@ class World {
 
     for(var i = 0; i < World.waves.length; i++) {
 
-      World.waves[i].draw();
+      if(World.waves[i] != undefined)
+
+        World.waves[i].draw();
 
     } 
 
@@ -37,7 +40,10 @@ class World {
   static createWave(c,frequency,amplitude) {
 
     let wave = new Wave(c,frequency,amplitude);
-    World.waves.push(wave);
+    World.waves.push(wave)
+    console.log(World.waves)
+    wave.interface = new UserInterface(World.waves.length-1)
+    wave.interface.update()
     return wave; 
 
   }
@@ -74,6 +80,12 @@ class World {
         World.waves[i].simulate();
 
     }
+
+  }
+
+  static removeWave(index) {
+
+
 
   }
 
