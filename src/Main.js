@@ -10,7 +10,7 @@ import {UserInterface, StaticInterface}    from './lib/UserInterface.js'
 // #################################################################################################  //
 
 let FPS = 0
-let circle
+export let mainCircle
 let oldTime = 0
 
 // PROGRAMMSTART 
@@ -27,21 +27,24 @@ let initProgram = () => {
   StaticInterface.init()
 
   // Erstelle eine Anfangswelle
-  World.createWave(1,0.005,100)
   //World.createWave(2,0.01,50);
   //World.createWave(1,0.1,50)
 
-  //World.createCombinedWave([World.waves[0], World.waves[1]]);
+  let combinedWave = World.createCombinedWave([]);
+  combinedWave.color = 'green'
+
+  World.createWave(1,0.005,100)
 
   // Erstelle ein neues Zeigermodell
-  circle = new Circle(document.getElementById('clock-display'), null)
-  circle.setWaves([World.waves[0]])
+  mainCircle = new Circle(document.getElementById('clock-display'), null)
+  mainCircle.setWaves([World.waves[1]])
+  mainCircle.toggle()
 
   // Starte die Animationsschleife
   loop()
 
   // Starte die erste Welle
-  World.waves[0].start()
+  World.waves[1].start()
   //World.waves[1].start();
   //World.waves[1].color = 'red';
 
@@ -67,7 +70,7 @@ let loop = () => {
   Display.drawInterface()  // Zeichne das Koordinatensystem und weitere
                            // Elemente
 
-  circle.draw(50)
+  mainCircle.draw(50 / RESOLUTION)
 
   // ~~~ Messe die Bilder pro Sekunde ~~~ //
   FPS++

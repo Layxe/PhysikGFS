@@ -247,7 +247,8 @@ class CombinedWave {
   }
 
   draw() {
-    Display.drawCombinedWave(this.waves, this.color)
+    if(this.waves.length > 0)
+      Display.drawCombinedWave(this.waves, this.color)
   }
 
 }

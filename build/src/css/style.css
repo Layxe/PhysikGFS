@@ -132,6 +132,24 @@ output {
     margin-left: 10px;
 }
 
+/* ### Statische UI Elemente ### */
+
+#edit-circle {
+    width: 300px;
+    position: absolute;
+    left: 0;
+    right: 0;
+    margin: 50px auto;
+    top: 0;
+    background-color: white;
+    border: 1px solid black;
+    padding: 10px;
+}
+
+#edit-circle > select {
+    width: 100%;
+}
+
 /* ### UI Einstellungen ### */
 
 .button {
@@ -146,6 +164,24 @@ output {
 
 .button:hover {
     background-color:rgba(41, 128, 185,1.0);
+}
+
+.danger {
+    background-color: rgba(231, 76, 60, 1.0);
+    border: 1px solid rgba(192, 57, 43, 1.0);
+}
+
+.danger:hover {
+    background-color: rgba(192, 57, 43, 1.0);
+}
+
+.ok {
+    background-color: rgba(46, 204, 113, 1.0);
+    border: 1px solid rgba(39, 174, 96, 1.0);
+}
+
+.ok:hover {
+    background-color: rgba(39, 174, 96, 1.0);
 }
 
 input[type=range] {

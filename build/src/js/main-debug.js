@@ -1,6 +1,11 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 'use strict';
 
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.mainCircle = undefined;
+
 var _Display = require('./lib/Display.js');
 
 var _Display2 = _interopRequireDefault(_Display);
@@ -29,7 +34,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 // #################################################################################################  //
 
 var FPS = 0;
-var circle = void 0;
+var mainCircle = exports.mainCircle = void 0;
 var oldTime = 0;
 
 // PROGRAMMSTART 
@@ -46,21 +51,24 @@ var initProgram = function initProgram() {
   _UserInterface.StaticInterface.init();
 
   // Erstelle eine Anfangswelle
-  _World2.default.createWave(1, 0.005, 100);
   //World.createWave(2,0.01,50);
   //World.createWave(1,0.1,50)
 
-  //World.createCombinedWave([World.waves[0], World.waves[1]]);
+  var combinedWave = _World2.default.createCombinedWave([]);
+  combinedWave.color = 'green';
+
+  _World2.default.createWave(1, 0.005, 100);
 
   // Erstelle ein neues Zeigermodell
-  circle = new _Circle2.default(document.getElementById('clock-display'), null);
-  circle.setWaves([_World2.default.waves[0]]);
+  exports.mainCircle = mainCircle = new _Circle2.default(document.getElementById('clock-display'), null);
+  mainCircle.setWaves([_World2.default.waves[1]]);
+  mainCircle.toggle();
 
   // Starte die Animationsschleife
   loop();
 
   // Starte die erste Welle
-  _World2.default.waves[0].start();
+  _World2.default.waves[1].start();
   //World.waves[1].start();
   //World.waves[1].color = 'red';
 };
@@ -84,7 +92,7 @@ var loop = function loop() {
   _Display2.default.drawInterface(); // Zeichne das Koordinatensystem und weitere
   // Elemente
 
-  circle.draw(50);
+  mainCircle.draw(50 / _PerformanceAnalyzer.RESOLUTION);
 
   // ~~~ Messe die Bilder pro Sekunde ~~~ //
   FPS++;
@@ -620,6 +628,10 @@ var _Utils = require('./Utils.js');
 
 var _PerformanceAnalyzer = require('./PerformanceAnalyzer.js');
 
+var _Wave = require('./Wave.js');
+
+var _Main = require('./../Main.js');
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -958,21 +970,85 @@ var StaticInterface = exports.StaticInterface = function () {
                 console.log(_World2.default.waves);
 
                 try {
-                    console.log(StaticInterface.index);
                     wave.color = colors[StaticInterface.index - 1];
-                } catch (e) {} finally {
-
+                } catch (e) {
+                    wave.color = 'orange';
+                } finally {
                     wave.start();
                     wave.interface.update();
                 }
             });
+
+            var editCircleButton = document.getElementById('edit-circle-button');
+            var editCircleDialogue = document.getElementById('edit-circle');
+            var waveSelect = document.getElementById('wave-select');
+            var finishedButton = document.getElementById('circle-finished-button');
+            var toggleButton = document.getElementById('circle-toggle-button');
+
+            var dialogueVisible = false;
+
+            toggleButton.addEventListener('click', function () {
+                _Main.mainCircle.toggle();
+            });
+
+            finishedButton.addEventListener('click', function () {
+                editCircleDialogue.style.display = 'none';
+                dialogueVisible = false;
+                StaticInterface.updateCircle();
+            });
+
+            waveSelect.addEventListener('change', function () {
+                StaticInterface.updateCircle();
+            });
+
+            editCircleButton.addEventListener('click', function () {
+
+                if (dialogueVisible) {
+
+                    editCircleDialogue.style.display = 'none';
+                } else {
+
+                    editCircleDialogue.style.display = 'block';
+                    waveSelect.innerHTML = '';
+
+                    for (var i = 0; i < _World2.default.waves.length; i++) {
+
+                        var wave = _World2.default.waves[i];
+
+                        if (wave != undefined) {
+
+                            if (wave instanceof _Wave.Wave) waveSelect.innerHTML += '<option index="' + i + '">Welle ' + i + '</option>';
+                        }
+                    }
+
+                    waveSelect.innerHTML += '<option index="0">Kombinierte Welle</option>';
+                }
+
+                dialogueVisible = !dialogueVisible;
+            });
+        }
+    }, {
+        key: 'updateCircle',
+        value: function updateCircle() {
+
+            var waveSelect = document.getElementById('wave-select');
+
+            var selectedIndex = waveSelect.selectedIndex;
+            var element = waveSelect.options[selectedIndex];
+
+            var waveIndex = element.getAttribute('index');
+            var wave = _World2.default.waves[waveIndex];
+
+            console.log(_World2.default.waves);
+
+            if (wave instanceof _Wave.Wave) _Main.mainCircle.setWaves([wave]);else _Main.mainCircle.setWaves(wave.waves);
         }
     }]);
 
     return StaticInterface;
 }();
 
-},{"./PerformanceAnalyzer.js":4,"./Utils.js":7,"./World.js":9}],7:[function(require,module,exports){
+},{"./../Main.js":1,"./PerformanceAnalyzer.js":4,"./Utils.js":7,"./Wave.js":8,"./World.js":9}],7:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1318,7 +1394,7 @@ var CombinedWave = function () {
   _createClass(CombinedWave, [{
     key: 'draw',
     value: function draw() {
-      _Display2.default.drawCombinedWave(this.waves, this.color);
+      if (this.waves.length > 0) _Display2.default.drawCombinedWave(this.waves, this.color);
     }
   }]);
 

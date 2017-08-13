@@ -1,6 +1,8 @@
 import World from './World.js'
 import {generateIcon, createSlider, getText} from './Utils.js'
 import {RESOLUTION} from './PerformanceAnalyzer.js'
+import {Wave, CombinedWave} from './Wave.js'
+import {mainCircle} from './../Main.js'
 
 const CONTAINER = document.getElementById('container')
 
@@ -333,18 +335,90 @@ export class StaticInterface {
             console.log(World.waves)
 
             try {
-                console.log(StaticInterface.index)
                 wave.color = colors[StaticInterface.index-1]
             } catch(e) {
-
+                wave.color = 'orange'
             } finally {
-
                 wave.start()
                 wave.interface.update()
-
             }
 
         })
+
+        let editCircleButton   = document.getElementById('edit-circle-button')
+        let editCircleDialogue = document.getElementById('edit-circle')
+        let waveSelect         = document.getElementById('wave-select')
+        let finishedButton     = document.getElementById('circle-finished-button')
+        let toggleButton       = document.getElementById('circle-toggle-button')
+
+        let dialogueVisible = false
+
+        toggleButton.addEventListener('click', () => {
+            mainCircle.toggle()
+        })
+
+        finishedButton.addEventListener('click', () => {
+            editCircleDialogue.style.display = 'none'
+            dialogueVisible = false
+            StaticInterface.updateCircle()
+        })
+
+        waveSelect.addEventListener('change', () => {
+            StaticInterface.updateCircle()
+        })
+
+        editCircleButton.addEventListener('click', () => {
+
+            if(dialogueVisible) {
+
+                editCircleDialogue.style.display = 'none'
+
+            } else {
+
+                editCircleDialogue.style.display = 'block'
+                waveSelect.innerHTML = ''
+
+                for(var i = 0; i < World.waves.length; i++) {
+
+                    let wave = World.waves[i]
+
+                    if(wave != undefined) {
+
+                        if(wave instanceof Wave) 
+                            waveSelect.innerHTML += `<option index="${i}">Welle ${i}</option>`                        
+
+                    }
+
+                }
+
+                waveSelect.innerHTML += `<option index="0">Kombinierte Welle</option>`
+
+            }
+
+            dialogueVisible = !dialogueVisible
+
+        })
+
+    }
+
+    static updateCircle() {
+
+        let waveSelect    = document.getElementById('wave-select')
+
+        let selectedIndex = waveSelect.selectedIndex
+        let element       = waveSelect.options[selectedIndex]
+
+        let waveIndex     = element.getAttribute('index')
+        let wave          = World.waves[waveIndex]
+
+        console.log(World.waves)
+
+        if(wave instanceof Wave)
+            mainCircle.setWaves([wave])
+        else
+            mainCircle.setWaves(wave.waves)
+
+
 
     }
 
