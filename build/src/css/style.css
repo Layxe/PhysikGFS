@@ -10,7 +10,7 @@ html, body {
 
 #display-wrapper {
     width: 90%;
-    height: 500px;
+    height: 550px;
     margin: 20px auto;
     position: relative;
     overflow: hidden;
@@ -18,13 +18,17 @@ html, body {
 
 #display-wrapper > #display {
     width: 100%;
-    height: 100%;
+    height: 500px;
     left: 500px;
 }
 
 canvas {
     float: left;
     position: absolute;
+}
+
+#small-clock-display {
+    top: 500px;
 }
 
 /* ### Headbar #################################################################################### */

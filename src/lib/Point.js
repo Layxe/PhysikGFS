@@ -1,9 +1,10 @@
 export default class Point {
 
-    constructor(x,y) {
+    constructor(x,y,index) {
         this.x = x
         this.y = y
         this.angle = 0
+        this.index = index
 
         this.still = true
 

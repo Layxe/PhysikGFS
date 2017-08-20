@@ -83,12 +83,6 @@ class World {
 
   }
 
-  static removeWave(index) {
-
-
-
-  }
-
 }
 
 World.waves = new Array()

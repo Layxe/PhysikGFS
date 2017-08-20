@@ -3,17 +3,18 @@ import World                               from './lib/World.js'
 import {Wave, CombinedWave}                from './lib/Wave.js'
 import Point                               from './lib/Point.js'
 import {PerformanceAnalyzer, RESOLUTION}   from './lib/PerformanceAnalyzer.js'
-import Circle                              from './lib/Circle.js'
+import {Circle, SmallCircle}               from './lib/Circle.js'
 import {UserInterface, StaticInterface}    from './lib/UserInterface.js'
+import LongitudinalHandler                 from './lib/LongitudinalHandler.js'
 
-// VARIABLEN 
+// VARIABLEN
 // #################################################################################################  //
 
 let FPS = 0
 export let mainCircle
 let oldTime = 0
 
-// PROGRAMMSTART 
+// PROGRAMMSTART
 // #################################################################################################  //
 
 let initProgram = () => {
@@ -26,13 +27,10 @@ let initProgram = () => {
   // Initialisiere die statischen Bedienelemente
   StaticInterface.init()
 
-  // Erstelle eine Anfangswelle
-  //World.createWave(2,0.01,50);
-  //World.createWave(1,0.1,50)
-
+  // Erstelle die kombinierte Welle und lege sie in Platz 0 ab
   let combinedWave = World.createCombinedWave([]);
   combinedWave.color = 'green'
-
+  
   World.createWave(1,0.005,100)
 
   // Erstelle ein neues Zeigermodell
@@ -48,6 +46,10 @@ let initProgram = () => {
   //World.waves[1].start();
   //World.waves[1].color = 'red';
 
+  document.getElementById('start-longitudinal').addEventListener('click', () => {
+    LongitudinalHandler.init()
+  });
+
 }
 
 window.onload = () => {
@@ -56,7 +58,7 @@ window.onload = () => {
 
 }
 
-// PROGRAMMLOOP 
+// PROGRAMMLOOP
 // #################################################################################################  //
 
 let loop = () => {

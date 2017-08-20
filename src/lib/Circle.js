@@ -1,7 +1,7 @@
 import {drawArrow} from './Utils.js'
 import Display from './Display.js'
 
-export default class Circle {
+export  class Circle {
 
     constructor(element,waves) {
 
@@ -36,9 +36,11 @@ export default class Circle {
     if(this.visible) {
       this.element.style.display = 'none';
       Display.element.style.left = '0';
+      Display.smallClockElement.style.left = '0'
     } else {
       this.element.style.display = 'block';
       Display.element.style.left = '500px';
+      Display.smallClockElement.style.left = '500px'
     }
 
     this.visible = !this.visible;
@@ -143,6 +145,14 @@ export default class Circle {
     
     }
 
+  }
+
+}
+
+export class SmallCircle {
+
+  constructor() {
+    this.element = document.getElementById('small-clock-display')
   }
 
 }

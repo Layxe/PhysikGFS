@@ -29,13 +29,47 @@ class Display {
         Display.element = document.getElementById('display')
         Display.ctx     = Display.element.getContext('2d')
 
+        Display.smallClockElement = document.getElementById('small-clock-display')
+
         Display.element.setAttribute('width', Display.width.toString())
         Display.element.setAttribute('height', Display.height.toString())
+
+        Display.smallClockElement.setAttribute('width', Display.width.toString());
+        Display.smallClockElement.setAttribute('height', '50')
 
     }
 
     // FUNKTIONEN 
     // #############################################################################################  //
+
+    /**
+     * Zeichne einen Punkt einer longitudinalen Welle
+     * 
+     * @static
+     * @param {any} point 
+     * @param {any} amplitude 
+     * @param {any} color 
+     * @memberof Display
+     */
+
+    static drawLongitudinalPoint(point, amplitude, color) {
+
+      let x = point.x - Math.cos(point.angle) * amplitude;
+      let y = 250+(-Math.sin(point.angle) * amplitude); // -sin weil das Koordinatensystem in y Richtung umgedreht ist
+
+      y = 250;
+
+      Display.ctx.fillStyle = color;
+
+      Display.ctx.fillRect(x,y-20,1,40)
+
+      if(point.index % 25 == 0)
+        Display.drawSimplePoint(x,250,'black',5)
+
+
+
+      //Display.ctx.fillRect(x,y,3,3)
+    }
 
     /**
      * Zeichne einen Punkt einer Welle
@@ -50,13 +84,12 @@ class Display {
     static drawPoint(point, amplitude, color) {
 
       var x = point.x;
-      var y = 250+(-Math.sin(point.angle) * amplitude);
+      var y = 250+(-Math.sin(point.angle) * amplitude); // -sin weil das Koordinatensystem in y Richtung umgedreht ist
 
       Display.ctx.fillStyle = color;
-      Display.ctx.fillRect(x,y, 1, 1);
+      //Display.ctx.fillRect(x,y, 1, 1);
 
       Display.ctx.lineTo(x,y);
-        
 
   }
 
@@ -127,7 +160,7 @@ static drawCombinedWave(waves,color) {
 
       for(var i = 0; i < waves.length; i++) {
 
-        y += Math.sin(waves[i].points[k].angle) * waves[i].amplitude;
+        y -= Math.sin(waves[i].points[k].angle) * waves[i].amplitude;
 
         if(waves[i].points[k].still) {
           still = true;
@@ -143,8 +176,6 @@ static drawCombinedWave(waves,color) {
       }
 
       Display.ctx.fillStyle = color;
-      Display.ctx.fillRect(x,y, 1, 1);
-
       Display.ctx.lineTo(x,y);
 
     }

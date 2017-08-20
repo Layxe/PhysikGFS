@@ -27,6 +27,8 @@ class Wave {
 
     this.reverse = false
     this.running = false
+    this.visible = true
+    this.transversal = true
 
     this.color = 'orange'
     this.strokeWidth = 3
@@ -56,7 +58,7 @@ class Wave {
     // Fülle diese Reihung mit Punkten
     for(var i = 0; i < Display.getPoints(); i++) {
 
-      this.points[i] = new Point(i*RESOLUTION, 0);
+      this.points[i] = new Point(i*RESOLUTION, 0, i);
 
     }
 
@@ -112,34 +114,59 @@ class Wave {
 
   draw() {
     
-    Display.ctx.beginPath()
-    // Grafische Einstellungen
-    Display.ctx.lineWidth = this.strokeWidth
-    Display.ctx.strokeStyle = this.color
+    if(!this.visible)
+      return
 
-    // Bilde aus den vielen Punkten einen Graphen
-    for(let i = 0; i < Display.getPoints(); i++) {
+    if(this.transversal) {
 
-      // Falls der Punkt nicht schwingt wird er auch nicht gezeichnet
-      if(!this.points[i].still) {
+      Display.ctx.beginPath()
+      // Grafische Einstellungen
+      Display.ctx.lineWidth = this.strokeWidth
+      Display.ctx.strokeStyle = this.color
 
-        Display.drawPoint(this.points[i], this.amplitude, this.color)
+      // Bilde aus den vielen Punkten einen Graphen
+      for(let i = 0; i < Display.getPoints(); i++) {
 
-      } else if(i > 0) {
-        // Falls es sich bei dem Punkt um das Anfangsstück handelt, soll eine Linie bis zur 0 Achse gezogen werden
-        if(!this.points[i-1].still) {
+        // Falls der Punkt nicht schwingt wird er auch nicht gezeichnet
+        if(!this.points[i].still) {
 
-          let fakePoint = new Point(this.points[i-1].x + RESOLUTION / 2)
-          fakePoint.setAngle(this.phi)
-          Display.drawPoint(fakePoint, this.amplitude, this.color)
+          Display.drawPoint(this.points[i], this.amplitude, this.color)
+
+        } else if(i > 0) {
+          // Falls es sich bei dem Punkt um das Anfangsstück handelt, soll eine Linie bis zur 0 Achse gezogen werden
+          if(!this.points[i-1].still) {
+
+            let fakePoint = new Point(this.points[i-1].x + RESOLUTION / 2)
+            fakePoint.setAngle(this.phi)
+            Display.drawPoint(fakePoint, this.amplitude, this.color)
+
+          }
 
         }
 
       }
 
-    }
+      Display.ctx.stroke()
 
-    Display.ctx.stroke()
+    } else {
+
+      for(let i = 0; i < Display.getPoints(); i++) {
+
+        let point = this.points[i]
+
+        let x = point.x + Math.sin(point.angle) * this.amplitude;
+
+
+        //if(!this.points[i].still) {
+
+
+          Display.drawLongitudinalPoint(point, this.amplitude, this.color)
+
+        //}
+
+      }
+
+    }
 
   }
 
@@ -175,7 +202,7 @@ class Wave {
       let lambda = this.c * T;
 
       // Überprüfe, ob die Welle den Punkt schon erreicht hat
-      if (this.time * this.c >= i*RESOLUTION) {
+      if (this.time * this.c >= i*RESOLUTION || !this.transversal) {
 
         let angle = (2 * Math.PI * (this.time / T - (i*RESOLUTION) / lambda)) + this.phi;
 
@@ -244,11 +271,33 @@ class CombinedWave {
     this.waves = waves
     this.color = color
     this.running = true
+
+    this.removeQueue = []
+
   }
 
   draw() {
     if(this.waves.length > 0)
       Display.drawCombinedWave(this.waves, this.color)
+
+    for(let i = 0; i < this.removeQueue.length; i++) {
+      this.waves.splice(this.waves.indexOf(this.removeQueue[i]), 1)
+    }
+
+    this.removeQueue = []
+
+  }
+
+  addWave(wave) {
+
+    this.waves.push(wave)
+
+  }
+
+  removeWave(wave) {
+
+    this.removeQueue.push(wave)
+
   }
 
 }

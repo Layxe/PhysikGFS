@@ -28,7 +28,10 @@ export class UserInterface {
 
     this.waveid = waveid
     this.contentToggled = false
-        
+    this.interferenz = false
+    this.intervals   = []
+    
+
     this.wrapper = document.createElement('div');
     this.head = document.createElement('div');
     this.content = document.createElement('div');
@@ -59,7 +62,6 @@ export class UserInterface {
     this.wrapper.appendChild(this.content);
 
     CONTAINER.appendChild(this.wrapper);
-
 
   }
 
@@ -189,7 +191,7 @@ export class UserInterface {
             World.waves[_interface.waveid].stop();
         });
 
-    setInterval(() => {
+    let interval = setInterval(() => {
 
         let wave = World.waves[_interface.waveid];
         let value = slider.value;
@@ -234,6 +236,8 @@ export class UserInterface {
 
     }, RESOLUTION * 10);
 
+    this.intervals.push(interval)
+
   }
 
   /**
@@ -246,18 +250,13 @@ export class UserInterface {
 
     let _interface = this;
 
+    // Erstelle die ersten Inhalte für die Kopfzeile
     let name = '<h1>Welle ' + this.waveid + '</h1>';
     let amplitude = getText('Amplitude', World.waves[this.waveid].amplitude/100);
     let frequency = getText('Frequenz', World.waves[this.waveid].frequency);
-    let speed = getText('Ausbreitungsgeschwindigkeit', World.waves[this.waveid].c);
+    let speed = getText('Ausbreitungsgeschw.', World.waves[this.waveid].c);
 
-    let iconSettings = document.createElement('i');
-    iconSettings.setAttribute('class', 'fa fa-cog fa-2x');
-
-    iconSettings.addEventListener('click', () => {
-
-    });
-
+    // Erstelle die Symbole zum bearbeiten der Welle
     let iconEdit = document.createElement('i');
     iconEdit.setAttribute('class', 'fa fa-dashboard fa-2x');
 
@@ -274,10 +273,56 @@ export class UserInterface {
 
     this.head.style.borderLeft = '10px solid ' + World.waves[this.waveid].color;
 
+    // Erstelle die Checkboxen für die Sichtbarkeit und Interferenz
+    let interferenz = document.createElement('div')
+    let checkBox     = document.createElement('input')
+    checkBox.setAttribute('type', 'checkbox')
+
+    interferenz.innerHTML = '<span>Interferenz: </span>'
+    interferenz.appendChild(checkBox)
+
+    interferenz.style.borderLeft = '1px solid black'
+    interferenz.style.paddingLeft = '30px'
+
+    checkBox.checked = this.interferenz
+
+    checkBox.addEventListener('change', () => {
+
+        let checked = checkBox.checked
+        
+        if(checked) {
+            World.waves[0].addWave(World.waves[_interface.waveid])
+        } else {
+            World.waves[0].removeWave(World.waves[_interface.waveid])
+        }
+
+        _interface.interferenz = checked
+
+    })
+
+    let visible          = document.createElement('div')
+    let visibleCheckBox  = document.createElement('input')
+    visibleCheckBox.setAttribute('type', 'checkbox')
+
+    visible.innerHTML = '<span class="fa fa-eye"></span> '
+    visible.appendChild(visibleCheckBox)
+
+    visibleCheckBox.checked = World.waves[this.waveid].visible
+
+    visibleCheckBox.addEventListener('change', () => {
+
+        let checked = visibleCheckBox.checked
+        
+        World.waves[_interface.waveid].visible = checked
+
+    })
+
+    // Füge die Elemente der Kopfzeile hinzu
     this.head.innerHTML = name + amplitude + frequency + speed; 
+    this.head.appendChild(interferenz)
+    this.head.appendChild(visible)
     this.head.appendChild(iconClose);
     this.head.appendChild(iconEdit);
-    this.head.appendChild(iconSettings);
 
   }
 
@@ -289,8 +334,13 @@ export class UserInterface {
 
   deleteWave() {
 
+    for(let i = 0; i < this.intervals.length; i++) {
+        clearInterval(this.intervals[i])
+    }
+
     delete World.waves[this.waveid]
     CONTAINER.removeChild(this.wrapper)
+
 
   }
 
@@ -315,7 +365,7 @@ export class UserInterface {
 }
 
 let colors = [
-    'red', 'yellow', 'green', 'blue', 'purple', 'chartreuse', 'lightblue', '#00ff98'
+    'red', 'yellow', 'olive', 'blue', 'purple', 'chartreuse', 'lightblue', '#00ff98'
 ]
 
 export class StaticInterface {
