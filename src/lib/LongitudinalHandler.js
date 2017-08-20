@@ -14,7 +14,7 @@ export default class LongitudinalHandler {
 
     World.waves = []
 
-    let wave = World.createWave(1,0.005,50)
+    let wave = World.createWave(1,0.0025,50)
     wave.transversal = false
     wave.start()
 

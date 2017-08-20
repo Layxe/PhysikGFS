@@ -72,21 +72,10 @@ let loop = () => {
   Display.drawInterface()  // Zeichne das Koordinatensystem und weitere
                            // Elemente
 
-  mainCircle.draw(50 / RESOLUTION)
+  mainCircle.draw(50 / RESOLUTION) // Zeichne das große Zeigermodell
 
-  // ~~~ Messe die Bilder pro Sekunde ~~~ //
-  FPS++
-
-  if(new Date().getTime() > oldTime + 1000) {
-
-    FPS = FPS + 1
-
-    document.getElementById('info-log').innerHTML = `FPS: ${FPS} at ${RESOLUTION}`
-
-    FPS = 0
-    oldTime = new Date().getTime()
-
-  }
+  PerformanceAnalyzer.update() // Messe die Bilder pro Sekunde
+                               // und verbessere wenn nötig die Performance
 
   window.requestAnimationFrame(loop)
 

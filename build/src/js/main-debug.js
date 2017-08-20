@@ -95,20 +95,10 @@ var loop = function loop() {
   _Display2.default.drawInterface(); // Zeichne das Koordinatensystem und weitere
   // Elemente
 
-  mainCircle.draw(50 / _PerformanceAnalyzer.RESOLUTION);
+  mainCircle.draw(50 / _PerformanceAnalyzer.RESOLUTION); // Zeichne das große Zeigermodell
 
-  // ~~~ Messe die Bilder pro Sekunde ~~~ //
-  FPS++;
-
-  if (new Date().getTime() > oldTime + 1000) {
-
-    FPS = FPS + 1;
-
-    document.getElementById('info-log').innerHTML = 'FPS: ' + FPS + ' at ' + _PerformanceAnalyzer.RESOLUTION;
-
-    FPS = 0;
-    oldTime = new Date().getTime();
-  }
+  _PerformanceAnalyzer.PerformanceAnalyzer.update(); // Messe die Bilder pro Sekunde
+  // und verbessere wenn nötig die Performance
 
   window.requestAnimationFrame(loop);
 };
@@ -581,7 +571,7 @@ var LongitudinalHandler = function () {
 
             _World2.default.waves = [];
 
-            var wave = _World2.default.createWave(1, 0.005, 50);
+            var wave = _World2.default.createWave(1, 0.0025, 50);
             wave.transversal = false;
             wave.start();
         }
@@ -593,13 +583,20 @@ var LongitudinalHandler = function () {
 exports.default = LongitudinalHandler;
 
 },{"./Wave.js":9,"./World.js":10}],5:[function(require,module,exports){
-"use strict";
+'use strict';
 
 Object.defineProperty(exports, "__esModule", {
         value: true
 });
+exports.PerformanceAnalyzer = exports.RESOLUTION = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _World = require('./World.js');
+
+var _World2 = _interopRequireDefault(_World);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -611,7 +608,7 @@ var PerformanceAnalyzer = exports.PerformanceAnalyzer = function () {
         }
 
         _createClass(PerformanceAnalyzer, null, [{
-                key: "_checkPerformance",
+                key: '_checkPerformance',
                 value: function _checkPerformance() {
 
                         var a = 0;
@@ -622,9 +619,16 @@ var PerformanceAnalyzer = exports.PerformanceAnalyzer = function () {
                         }
                 }
         }, {
-                key: "execute",
+                key: 'execute',
                 value: function execute() {
 
+                        // Initialisierung
+
+                        PerformanceAnalyzer.FPS = 0;
+                        PerformanceAnalyzer.oldTime = new Date().getTime();
+                        PerformanceAnalyzer.averageFPS = 60;
+
+                        // Messung der durchschnittlichen Leistung
                         PerformanceAnalyzer.performanceScore = 0;
 
                         for (var i = 0; i < 10; i++) {
@@ -640,12 +644,46 @@ var PerformanceAnalyzer = exports.PerformanceAnalyzer = function () {
                                 exports.RESOLUTION = RESOLUTION = 1;
                         }
                 }
+        }, {
+                key: 'update',
+                value: function update() {
+
+                        PerformanceAnalyzer.FPS += 1;
+
+                        if (new Date().getTime() > PerformanceAnalyzer.oldTime + 1000) {
+
+                                document.getElementById('info-log').innerHTML = 'FPS: ' + PerformanceAnalyzer.FPS + ' at ' + RESOLUTION;
+
+                                PerformanceAnalyzer.averageFPS = PerformanceAnalyzer.FPS;
+
+                                PerformanceAnalyzer.optimizeProgram();
+
+                                PerformanceAnalyzer.FPS = 0;
+                                PerformanceAnalyzer.oldTime = new Date().getTime();
+                        }
+                }
+        }, {
+                key: 'optimizeProgram',
+                value: function optimizeProgram() {
+
+                        if (PerformanceAnalyzer.averageFPS < 35 && RESOLUTION < 6) {
+
+                                console.log('System optimization!');
+
+                                exports.RESOLUTION = RESOLUTION += 1;
+                                _World2.default.reInit();
+                        } else if (PerformanceAnalyzer.averageFPS > 60 && RESOLUTION > 1) {
+
+                                exports.RESOLUTION = RESOLUTION -= 1;
+                                _World2.default.reInit();
+                        }
+                }
         }]);
 
         return PerformanceAnalyzer;
 }();
 
-},{}],6:[function(require,module,exports){
+},{"./World.js":10}],6:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -1686,6 +1724,25 @@ var World = function () {
       for (var i = 0; i < World.waves.length; i++) {
 
         if (World.waves[i] instanceof _Wave.Wave) World.waves[i].simulate();
+      }
+    }
+
+    /**
+     * Starte die Simulation von vorne, falls sich die Genauigkeit der Darstellung ändert
+     * 
+     * @static
+     * @memberof World
+     */
+
+  }, {
+    key: 'reInit',
+    value: function reInit() {
+
+      for (var i = 0; i < World.waves.length; i++) {
+
+        var wave = World.waves[i];
+
+        if (wave != undefined && wave instanceof _Wave.Wave) wave.init();
       }
     }
   }]);

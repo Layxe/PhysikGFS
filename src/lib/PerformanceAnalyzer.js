@@ -1,3 +1,5 @@
+import World from './World.js'
+
 export let RESOLUTION = 1
 
 export class PerformanceAnalyzer {
@@ -16,6 +18,13 @@ export class PerformanceAnalyzer {
 
     static execute() {
 
+        // Initialisierung
+
+        PerformanceAnalyzer.FPS = 0
+        PerformanceAnalyzer.oldTime = new Date().getTime()
+        PerformanceAnalyzer.averageFPS = 60
+        
+        // Messung der durchschnittlichen Leistung
         PerformanceAnalyzer.performanceScore = 0
 
         for(var i = 0; i < 10; i++) {
@@ -33,5 +42,42 @@ export class PerformanceAnalyzer {
         }
 
     } 
+
+    static update() {
+
+        PerformanceAnalyzer.FPS += 1;
+
+        if(new Date().getTime() > PerformanceAnalyzer.oldTime + 1000) {
+
+            document.getElementById('info-log').innerHTML = `FPS: ${PerformanceAnalyzer.FPS} at ${RESOLUTION}`
+
+            PerformanceAnalyzer.averageFPS = PerformanceAnalyzer.FPS
+
+            PerformanceAnalyzer.optimizeProgram()
+
+            PerformanceAnalyzer.FPS = 0
+            PerformanceAnalyzer.oldTime = new Date().getTime()
+
+        }
+
+    }
+
+    static optimizeProgram() {
+
+        if(PerformanceAnalyzer.averageFPS < 35 && RESOLUTION < 6) {
+
+            console.log('System optimization!')
+
+            RESOLUTION += 1
+            World.reInit()
+
+        } else if(PerformanceAnalyzer.averageFPS > 60 && RESOLUTION > 1) {
+
+            RESOLUTION -= 1
+            World.reInit()
+
+        }
+
+    }
 
 }

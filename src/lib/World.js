@@ -83,6 +83,26 @@ class World {
 
   }
 
+  /**
+   * Starte die Simulation von vorne, falls sich die Genauigkeit der Darstellung ändert
+   * 
+   * @static
+   * @memberof World
+   */
+
+  static reInit() {
+
+    for(let i = 0; i < World.waves.length; i++) {
+
+      let wave = World.waves[i]
+
+      if(wave != undefined && wave instanceof Wave)
+        wave.init()
+
+    }
+
+  }
+
 }
 
 World.waves = new Array()
