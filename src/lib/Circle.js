@@ -1,5 +1,6 @@
 import {drawArrow} from './Utils.js'
 import Display from './Display.js'
+import {RESOLUTION} from './PerformanceAnalyzer.js'
 
 export  class Circle {
 
@@ -149,10 +150,70 @@ export  class Circle {
 
 }
 
+export class SmallCircleDisplay {
+
+  static init(wave) {
+
+    SmallCircleDisplay.element = document.getElementById('small-clock-display')
+    SmallCircleDisplay.circles = new Array()
+    SmallCircleDisplay.wave    = wave
+    SmallCircleDisplay.ctx     = SmallCircleDisplay.element.getContext('2d')
+
+    let i = 0
+
+    for(let x = 30; x < parseInt(SmallCircleDisplay.element.getAttribute('width')); x += 90) {
+
+      SmallCircleDisplay.circles[i] = new SmallCircle(x)
+      i += 1
+
+    }
+  
+  }
+
+  static draw() {
+
+    SmallCircleDisplay.ctx.fillStyle = 'white'
+    SmallCircleDisplay.ctx.fillRect(0,0,2000,50)
+    SmallCircleDisplay.ctx.strokeStyle = SmallCircleDisplay.wave.color
+
+    for(let i = 0; i < SmallCircleDisplay.circles.length; i++) {
+
+      SmallCircleDisplay.circles[i].draw()
+
+    }
+
+    //SmallCircleDisplay.ctx.stroke()
+
+  }
+
+}
+
 export class SmallCircle {
 
-  constructor() {
-    this.element = document.getElementById('small-clock-display')
+  constructor(x) {
+
+    this.radius = 25
+    this.x      = x
+
+  }
+
+  draw() {
+
+    let point = SmallCircleDisplay.wave.points[Math.round(this.x / RESOLUTION)]
+
+    let angle = point.angle
+
+    let direction = {
+      x: Math.cos(angle),
+      y: Math.sin(angle)
+    }
+
+    //drawArrow(SmallCircleDisplay.ctx, this.x, 25, this.x+direction.x, 25-direction.y)
+    SmallCircleDisplay.ctx.beginPath()
+    SmallCircleDisplay.ctx.moveTo(this.x, 25)
+    SmallCircleDisplay.ctx.lineTo(this.x+direction.x, this.y+direction.y)
+    SmallCircleDisplay.ctx.stroke()
+
   }
 
 }

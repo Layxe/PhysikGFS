@@ -64,16 +64,20 @@ var initProgram = function initProgram() {
   mainCircle.toggle();
 
   // Starte die Animationsschleife
-  loop();
 
   // Starte die erste Welle
   _World2.default.waves[1].start();
   //World.waves[1].start();
   //World.waves[1].color = 'red';
 
+  // Initialisiere die kleinen Zeigermodelle
+  _Circle.SmallCircleDisplay.init(_World2.default.waves[1]);
+
   document.getElementById('start-longitudinal').addEventListener('click', function () {
     _LongitudinalHandler2.default.init();
   });
+
+  loop();
 };
 
 window.onload = function () {
@@ -97,6 +101,8 @@ var loop = function loop() {
 
   mainCircle.draw(50 / _PerformanceAnalyzer.RESOLUTION); // Zeichne das große Zeigermodell
 
+  _Circle.SmallCircleDisplay.draw();
+
   _PerformanceAnalyzer.PerformanceAnalyzer.update(); // Messe die Bilder pro Sekunde
   // und verbessere wenn nötig die Performance
 
@@ -107,9 +113,9 @@ var loop = function loop() {
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
-  value: true
+    value: true
 });
-exports.SmallCircle = exports.Circle = undefined;
+exports.SmallCircle = exports.SmallCircleDisplay = exports.Circle = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -119,163 +125,232 @@ var _Display = require('./Display.js');
 
 var _Display2 = _interopRequireDefault(_Display);
 
+var _PerformanceAnalyzer = require('./PerformanceAnalyzer.js');
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var Circle = exports.Circle = function () {
-  function Circle(element, waves) {
-    _classCallCheck(this, Circle);
+    function Circle(element, waves) {
+        _classCallCheck(this, Circle);
 
-    this.waves = waves;
-    this.element = element;
-    this.ctx = this.element.getContext('2d');
-    this.visible = true;
-    this.gesAmplitude = 0;
-    this.showAngle = true;
-  }
-
-  /**
-   * Setze die Wellen, welche angezeigt werden
-   * 
-   * @param {array} waves
-   * @memberof Circle
-   */
-
-  _createClass(Circle, [{
-    key: 'setWaves',
-    value: function setWaves(waves) {
-      this.waves = waves;
+        this.waves = waves;
+        this.element = element;
+        this.ctx = this.element.getContext('2d');
+        this.visible = true;
+        this.gesAmplitude = 0;
+        this.showAngle = true;
     }
 
     /**
-     * Zeige / Verstecke das Zeigermodell
+     * Setze die Wellen, welche angezeigt werden
      * 
+     * @param {array} waves
      * @memberof Circle
      */
 
-  }, {
-    key: 'toggle',
-    value: function toggle() {
-
-      if (this.visible) {
-        this.element.style.display = 'none';
-        _Display2.default.element.style.left = '0';
-        _Display2.default.smallClockElement.style.left = '0';
-      } else {
-        this.element.style.display = 'block';
-        _Display2.default.element.style.left = '500px';
-        _Display2.default.smallClockElement.style.left = '500px';
-      }
-
-      this.visible = !this.visible;
-    }
-
-    /**
-     * Zeichne das Zeigermodell
-     * 
-     * @param {number} pointIndex Verwendeter Punkt
-     * @memberof Circle
-     */
-
-  }, {
-    key: 'draw',
-    value: function draw(pointIndex) {
-
-      if (this.visible && this.waves != null) {
-
-        var gesY = 0;
-        var gesAmplitude = 0;
-        var marginLeft;
-        var x;
-        var y;
-
-        this.ctx.clearRect(0, 0, 500, 500);
-
-        // Berechne die gesamte Amplitude
-        for (var i = 0; i < this.waves.length; i++) {
-          gesAmplitude += this.waves[i].amplitude;
+    _createClass(Circle, [{
+        key: 'setWaves',
+        value: function setWaves(waves) {
+            this.waves = waves;
         }
 
-        // Berechne die neue Position des Canvas, falls sich
-        // die maximale Amplitude ändert
-        if (this.gesAmplitude != gesAmplitude) {
+        /**
+         * Zeige / Verstecke das Zeigermodell
+         * 
+         * @memberof Circle
+         */
 
-          this.gesAmplitude = gesAmplitude;
-          this.element.style.left = gesAmplitude - 250 + 'px';
+    }, {
+        key: 'toggle',
+        value: function toggle() {
+
+            if (this.visible) {
+                this.element.style.display = 'none';
+                _Display2.default.element.style.left = '0';
+                _Display2.default.smallClockElement.style.left = '0';
+            } else {
+                this.element.style.display = 'block';
+                _Display2.default.element.style.left = '500px';
+                _Display2.default.smallClockElement.style.left = '500px';
+            }
+
+            this.visible = !this.visible;
         }
 
-        marginLeft = 490 - gesAmplitude;
+        /**
+         * Zeichne das Zeigermodell
+         * 
+         * @param {number} pointIndex Verwendeter Punkt
+         * @memberof Circle
+         */
 
-        x = marginLeft;
-        y = 250;
+    }, {
+        key: 'draw',
+        value: function draw(pointIndex) {
 
-        this.ctx.lineWidth = 3;
+            if (this.visible && this.waves != null) {
 
-        // Zeichne einen neuen Zeiger für jede Welle
-        for (var i = 0; i < this.waves.length; i++) {
+                var gesY = 0;
+                var gesAmplitude = 0;
+                var marginLeft;
+                var x;
+                var y;
 
-          var wave = this.waves[i];
-          var point = wave.points[pointIndex];
-          var angle = point.angle;
+                this.ctx.clearRect(0, 0, 500, 500);
 
-          var newX = Math.cos(angle) * wave.amplitude + marginLeft;
-          var newY = -Math.sin(angle) * wave.amplitude + 250;
+                // Berechne die gesamte Amplitude
+                for (var i = 0; i < this.waves.length; i++) {
+                    gesAmplitude += this.waves[i].amplitude;
+                }
 
-          this.ctx.beginPath();
-          this.ctx.strokeStyle = wave.color;
+                // Berechne die neue Position des Canvas, falls sich
+                // die maximale Amplitude ändert
+                if (this.gesAmplitude != gesAmplitude) {
 
-          // Erstelle eine Kreisform zum Anzeigen der aktuellen Zeigerposition
-          if (this.showAngle && angle != wave.phi) {
+                    this.gesAmplitude = gesAmplitude;
+                    this.element.style.left = gesAmplitude - 250 + 'px';
+                }
 
-            this.ctx.beginPath();
+                marginLeft = 490 - gesAmplitude;
 
-            var startAngle = 2 * Math.PI - wave.phi;
-            var circleAngle = 2 * Math.PI - angle;
+                x = marginLeft;
+                y = 250;
 
-            this.ctx.arc(x, y, wave.amplitude / 2, startAngle, circleAngle, true);
-            this.ctx.stroke();
-          }
+                this.ctx.lineWidth = 3;
 
-          // Zeichne den Pfeil
-          if (i != 0) {
-            (0, _Utils.drawArrow)(this.ctx, x, y, newX - marginLeft + x, newY - 250 + y); // Anschließende Pfeile
-          } else {
-            (0, _Utils.drawArrow)(this.ctx, x, y, newX, newY); // Erster Pfeil
-          }
+                // Zeichne einen neuen Zeiger für jede Welle
+                for (var i = 0; i < this.waves.length; i++) {
 
-          this.ctx.stroke();
+                    var wave = this.waves[i];
+                    var point = wave.points[pointIndex];
+                    var angle = point.angle;
 
-          x = newX;
-          y = newY;
+                    var newX = Math.cos(angle) * wave.amplitude + marginLeft;
+                    var newY = -Math.sin(angle) * wave.amplitude + 250;
 
-          // Hebe den Punkt hervor
-          _Display2.default.drawPointOnWave(point, wave.amplitude, wave.color, 5);
+                    this.ctx.beginPath();
+                    this.ctx.strokeStyle = wave.color;
 
-          gesY += newY;
+                    // Erstelle eine Kreisform zum Anzeigen der aktuellen Zeigerposition
+                    if (this.showAngle && angle != wave.phi) {
+
+                        this.ctx.beginPath();
+
+                        var startAngle = 2 * Math.PI - wave.phi;
+                        var circleAngle = 2 * Math.PI - angle;
+
+                        this.ctx.arc(x, y, wave.amplitude / 2, startAngle, circleAngle, true);
+                        this.ctx.stroke();
+                    }
+
+                    // Zeichne den Pfeil
+                    if (i != 0) {
+                        (0, _Utils.drawArrow)(this.ctx, x, y, newX - marginLeft + x, newY - 250 + y); // Anschließende Pfeile
+                    } else {
+                        (0, _Utils.drawArrow)(this.ctx, x, y, newX, newY); // Erster Pfeil
+                    }
+
+                    this.ctx.stroke();
+
+                    x = newX;
+                    y = newY;
+
+                    // Hebe den Punkt hervor
+                    _Display2.default.drawPointOnWave(point, wave.amplitude, wave.color, 5);
+
+                    gesY += newY;
+                }
+
+                // Zeichne den Kreis
+                this.ctx.lineWidth = 2;
+                this.ctx.strokeStyle = 'black';
+
+                this.ctx.beginPath();
+                this.ctx.arc(490 - gesAmplitude, 250, gesAmplitude + 3, 0, 2 * Math.PI);
+                this.ctx.stroke();
+            }
         }
+    }]);
 
-        // Zeichne den Kreis
-        this.ctx.lineWidth = 2;
-        this.ctx.strokeStyle = 'black';
-
-        this.ctx.beginPath();
-        this.ctx.arc(490 - gesAmplitude, 250, gesAmplitude + 3, 0, 2 * Math.PI);
-        this.ctx.stroke();
-      }
-    }
-  }]);
-
-  return Circle;
+    return Circle;
 }();
 
-var SmallCircle = exports.SmallCircle = function SmallCircle() {
-  _classCallCheck(this, SmallCircle);
+var SmallCircleDisplay = exports.SmallCircleDisplay = function () {
+    function SmallCircleDisplay() {
+        _classCallCheck(this, SmallCircleDisplay);
+    }
 
-  this.element = document.getElementById('small-clock-display');
-};
+    _createClass(SmallCircleDisplay, null, [{
+        key: 'init',
+        value: function init(wave) {
 
-},{"./Display.js":3,"./Utils.js":8}],3:[function(require,module,exports){
+            SmallCircleDisplay.element = document.getElementById('small-clock-display');
+            SmallCircleDisplay.circles = new Array();
+            SmallCircleDisplay.wave = wave;
+            SmallCircleDisplay.ctx = SmallCircleDisplay.element.getContext('2d');
+
+            var i = 0;
+
+            for (var x = 30; x < parseInt(SmallCircleDisplay.element.getAttribute('width')); x += 90) {
+
+                SmallCircleDisplay.circles[i] = new SmallCircle(x);
+                i += 1;
+            }
+        }
+    }, {
+        key: 'draw',
+        value: function draw() {
+
+            SmallCircleDisplay.ctx.fillStyle = 'white';
+            SmallCircleDisplay.ctx.fillRect(0, 0, 2000, 50);
+            SmallCircleDisplay.ctx.strokeStyle = SmallCircleDisplay.wave.color;
+
+            for (var i = 0; i < SmallCircleDisplay.circles.length; i++) {
+
+                SmallCircleDisplay.circles[i].draw();
+            }
+
+            //SmallCircleDisplay.ctx.stroke()
+        }
+    }]);
+
+    return SmallCircleDisplay;
+}();
+
+var SmallCircle = exports.SmallCircle = function () {
+    function SmallCircle(x) {
+        _classCallCheck(this, SmallCircle);
+
+        this.radius = 25;
+        this.x = x;
+    }
+
+    _createClass(SmallCircle, [{
+        key: 'draw',
+        value: function draw() {
+
+            var point = SmallCircleDisplay.wave.points[Math.round(this.x / _PerformanceAnalyzer.RESOLUTION)];
+
+            var angle = point.angle;
+
+            var direction = {
+                x: Math.cos(angle),
+                y: Math.sin(angle)
+
+                //drawArrow(SmallCircleDisplay.ctx, this.x, 25, this.x+direction.x, 25-direction.y)
+            };SmallCircleDisplay.ctx.beginPath();
+            SmallCircleDisplay.ctx.moveTo(this.x, 25);
+            SmallCircleDisplay.ctx.lineTo(this.x + direction.x, this.y + direction.y);
+            SmallCircleDisplay.ctx.stroke();
+        }
+    }]);
+
+    return SmallCircle;
+}();
+
+},{"./Display.js":3,"./PerformanceAnalyzer.js":5,"./Utils.js":8}],3:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {

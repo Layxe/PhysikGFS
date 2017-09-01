@@ -3,7 +3,7 @@ import World                               from './lib/World.js'
 import {Wave, CombinedWave}                from './lib/Wave.js'
 import Point                               from './lib/Point.js'
 import {PerformanceAnalyzer, RESOLUTION}   from './lib/PerformanceAnalyzer.js'
-import {Circle, SmallCircle}               from './lib/Circle.js'
+import {Circle, SmallCircleDisplay}               from './lib/Circle.js'
 import {UserInterface, StaticInterface}    from './lib/UserInterface.js'
 import LongitudinalHandler                 from './lib/LongitudinalHandler.js'
 
@@ -39,16 +39,20 @@ let initProgram = () => {
   mainCircle.toggle()
 
   // Starte die Animationsschleife
-  loop()
 
   // Starte die erste Welle
   World.waves[1].start()
   //World.waves[1].start();
   //World.waves[1].color = 'red';
+  
+  // Initialisiere die kleinen Zeigermodelle
+  SmallCircleDisplay.init(World.waves[1])
 
   document.getElementById('start-longitudinal').addEventListener('click', () => {
     LongitudinalHandler.init()
   });
+
+  loop()
 
 }
 
@@ -73,6 +77,8 @@ let loop = () => {
                            // Elemente
 
   mainCircle.draw(50 / RESOLUTION) // Zeichne das große Zeigermodell
+
+  SmallCircleDisplay.draw()
 
   PerformanceAnalyzer.update() // Messe die Bilder pro Sekunde
                                // und verbessere wenn nötig die Performance
