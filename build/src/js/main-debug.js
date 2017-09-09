@@ -1269,7 +1269,7 @@ var UserInterface = exports.UserInterface = function () {
             buttonContent.appendChild(reverseButton);
 
             // Erstelle einen Knopf zum Anzeigen der Wellenlänge
-            var waveLengthButton = (0, _Utils.generateIcon)('fa-stop fa-3x');
+            var waveLengthButton = (0, _Utils.generateIcon)('fa-arrows-h fa-3x');
             waveLengthButton.setAttribute('title', 'Wellenlänge anzeigen');
             waveLengthButton.addEventListener('click', function () {
                 _World2.default.waves[_interface.waveid].showWaveLength = !_World2.default.waves[_interface.waveid].showWaveLength;

@@ -130,7 +130,7 @@ export class UserInterface {
     buttonContent.appendChild(reverseButton);
 
     // Erstelle einen Knopf zum Anzeigen der Wellenlänge
-    let waveLengthButton = generateIcon('fa-stop fa-3x');
+    let waveLengthButton = generateIcon('fa-arrows-h fa-3x');
     waveLengthButton.setAttribute('title', 'Wellenlänge anzeigen')
     waveLengthButton.addEventListener('click', () => {
         World.waves[_interface.waveid].showWaveLength = !World.waves[_interface.waveid].showWaveLength;
