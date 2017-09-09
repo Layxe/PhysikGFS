@@ -4,29 +4,38 @@ import {RESOLUTION}        from './PerformanceAnalyzer.js'
 import Point               from './Point.js'
 import LongitudinalHandler from './LongitudinalHandler.js'
 
+// ZEIGERMODELL 
+// #################################################################################################  //
+
 export  class Circle {
 
-    constructor(element,waves) {
+  // KONSTRUKTOR 
+  // ###############################################################################################  //
 
-      this.waves = waves
-      this.element = element
-      this.ctx = this.element.getContext('2d')
-      this.visible = true
-      this.gesAmplitude = 0
-      this.showAngle = true
+  constructor(element,waves) {
 
-    } 
+    this.waves = waves
+    this.element = element
+    this.ctx = this.element.getContext('2d')
+    this.visible = true
+    this.gesAmplitude = 0
+    this.showAngle = true
 
-    /**
-     * Setze die Wellen, welche angezeigt werden
-     * 
-     * @param {array} waves
-     * @memberof Circle
-     */
+  } 
 
-    setWaves(waves) {
-      this.waves = waves
-    }
+  // FUNKTIONEN 
+  // ###############################################################################################  //
+
+  /**
+   * Setze die Wellen, welche angezeigt werden
+   * 
+   * @param {array} waves
+   * @memberof Circle
+   */
+
+  setWaves(waves) {
+    this.waves = waves
+  }
 
     /**
      * Zeige / Verstecke das Zeigermodell
@@ -107,7 +116,6 @@ export  class Circle {
 
         var wave  = this.waves[i];
         var point = wave.points[pointIndex];
-        console.log(pointIndex)
         var angle = point.angle;
 
         this.ctx.beginPath();
@@ -159,6 +167,10 @@ export  class Circle {
 
 }
 
+// KLEINES ZEIGERMODELL 
+// #################################################################################################  //
+
+
 /**
  * Klasse zum Anzeigen vieler kleiner Zeigermodelle für
  * mehrere Punkte
@@ -166,6 +178,9 @@ export  class Circle {
  */
 
 export class SmallCircleDisplay {
+
+  // INITIALISIERUNG 
+  // ###############################################################################################  //
 
   /**
    * Initialisiere das Modell mit der gegebenen Welle
@@ -192,6 +207,9 @@ export class SmallCircleDisplay {
     }
   
   }
+
+  // FUNKTIONEN 
+  // ###############################################################################################  //
 
   /**
    * Ändere die Welle
@@ -262,7 +280,10 @@ export class SmallCircleDisplay {
  */
 
 export class SmallCircle {
-  
+
+  // KONSTRUKTOR 
+  // ###############################################################################################  //
+
   /**
    * Erstelle ein neues Zeigermodell mit vorgegebenen x Wert
    * @param {number} x 
@@ -275,6 +296,9 @@ export class SmallCircle {
     this.point  = SmallCircleDisplay.wave.points[Math.round(this.x / RESOLUTION)]
 
   }
+
+  // FUNKTIONEN 
+  // ###############################################################################################  //
 
   /**
    * Zeichne das Zeigermodell

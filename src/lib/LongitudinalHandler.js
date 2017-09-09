@@ -1,9 +1,23 @@
-import World from './World.js'
-import {Wave} from './Wave.js'
+import World        from './World.js'
+import {Wave}       from './Wave.js'
 import {mainCircle} from './../Main.js'
 import Reflect      from './Reflect.js'
 
+/**
+ * Bearbeite die Umstellung des Programms zum Anzeigen einer longitudinalen Welle
+ * 
+ * @export
+ * @class LongitudinalHandler
+ */
+
 export default class LongitudinalHandler {
+
+  /**
+   * Initialisiere die longitudinale Welle
+   * 
+   * @static
+   * @memberof LongitudinalHandler
+   */
 
   static init() {
 

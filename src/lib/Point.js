@@ -1,4 +1,22 @@
+/**
+ * Einfache Klasse um einen Punkt auf der Welle zu simulieren
+ * 
+ * @export
+ * @class Point
+ */
+
 export default class Point {
+
+    // KONSTRUKTOR 
+    // #############################################################################################  //
+
+    /**
+     * Erstelle eine neue Instanz eines Punktes
+     * @param {number} x   x Koordinate 
+     * @param {number} y   y Koordinate
+     * @param {number} index  Speicherplatz der in der Reihung belegt wird  
+     * @memberof Point
+     */
 
     constructor(x,y,index) {
         this.x = x
@@ -9,6 +27,17 @@ export default class Point {
         this.still = true
 
     }
+
+    // FUNKTIONEN 
+    // #############################################################################################  //
+
+    /**
+     * Vereinfache das aktuelle Bogenmaß
+     * 4PI -> 2PI
+     * 3PI -> 1.5PI
+     * 
+     * @memberof Point
+     */
 
     breakAngleDown() {
 
@@ -27,6 +56,13 @@ export default class Point {
         }
 
     }
+
+    /**
+     * Ändere den aktuellen Winkel des Punktes
+     * 
+     * @param {number} angle Bogenmaß
+     * @memberof Point
+     */
 
     setAngle(angle) {
         this.angle = angle

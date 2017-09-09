@@ -3,8 +3,11 @@ import Display              from './Display.js'
 import {UserInterface}      from './UserInterface.js'
 import {SmallCircleDisplay} from './Circle'
 
-// WELT 
-// #################################################################################################  //
+/**
+ * Klasse zum bündeln der verschiedenen Wellen in einer Klasse
+ * 
+ * @class World
+ */
 
 class World {
 

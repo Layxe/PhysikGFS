@@ -1,8 +1,34 @@
 import World from './World.js'
 
+/*
+ * Eine Welle besteht aus mehreren Punkte die abhängig von einander unterschiedliche
+ * Werte zugewiesen bekommen. Die Anzahl der Punkte hängt von dieser Variable ab.
+ * Dies bedeuetet, dass bei 1 jedes Pixel einen Punkt zugewiesen bekommt.
+ * Bei 2 nur jedes zweite Pixel etc.
+ */
+
 export let RESOLUTION = 1
 
+/**
+ * Analysiere die Leistung des Rechners und passe abhängig von der
+ * Leistungsfähigkeit das Programm an.
+ * Falls der Rechner nicht leistungsstark genug ist um die Welle in
+ * aktzeptabler Zeit darzustellen wird die schärfe der Darstellung herunter
+ * gedreht und somit der Rechenprozess vereinfacht
+ * 
+ * @export
+ * @class PerformanceAnalyzer
+ */
+
 export class PerformanceAnalyzer {
+
+    /**
+     * Analyisiere die ungefähre Rechenleistung ( sehr primitiv )
+     * 
+     * @private
+     * @static
+     * @memberof PerformanceAnalyzer
+     */
 
     static _checkPerformance() {
 
@@ -15,6 +41,13 @@ export class PerformanceAnalyzer {
         }
 
     }
+
+    /**
+     * Analysiere 10x die Rechenleistung und bilde den Mittelwert
+     * 
+     * @static
+     * @memberof PerformanceAnalyzer
+     */
 
     static execute() {
 
@@ -43,6 +76,14 @@ export class PerformanceAnalyzer {
 
     } 
 
+    /**
+     * Messe die Bilder pro Sekunde und passe das Programm dynamisch an,
+     * falls ein Einbruch der Bildrate erkennbar wird
+     * 
+     * @static
+     * @memberof PerformanceAnalyzer
+     */
+
     static update() {
 
         PerformanceAnalyzer.FPS += 1;
@@ -65,8 +106,6 @@ export class PerformanceAnalyzer {
     static optimizeProgram() {
 
         if(PerformanceAnalyzer.averageFPS < 35 && RESOLUTION < 10) {
-
-            console.log('System optimization!')
 
             RESOLUTION += 1
             World.reInit()
