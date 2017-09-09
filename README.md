@@ -22,11 +22,10 @@ Der 'default' Task überprüft hierbei ob die Datein in src/ und src/lib/ verän
 - Darstellung der Wellen mit Hilfe des Zeigermodells 
 - Änderung der Amplitude, Frequenz, Ausbreitungsgeschwindigkeit und Phasenverschiebung
 - Benutzerfreundliche Oberfläche
+- Reflektion transversaler Wellen am losen sowie festen Ende
 ## Anforderungen
 - Javascriptfähiger Browser
 ## Geplante Funktionen
-- Ausgearbeitetes Zeigermodell
-- Reflexion an losem sowie festem Ende
-- ( Darstellung 2 dimensionaler Wellen )
+-
 ## Live Demo
 [Demo](https://alx0.lima-city.de/)
