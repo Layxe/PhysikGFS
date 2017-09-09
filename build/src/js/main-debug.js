@@ -138,7 +138,14 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+// ZEIGERMODELL 
+// #################################################################################################  //
+
 var Circle = exports.Circle = function () {
+
+  // KONSTRUKTOR 
+  // ###############################################################################################  //
+
   function Circle(element, waves) {
     _classCallCheck(this, Circle);
 
@@ -149,6 +156,9 @@ var Circle = exports.Circle = function () {
     this.gesAmplitude = 0;
     this.showAngle = true;
   }
+
+  // FUNKTIONEN 
+  // ###############################################################################################  //
 
   /**
    * Setze die Wellen, welche angezeigt werden
@@ -241,7 +251,6 @@ var Circle = exports.Circle = function () {
 
           var wave = this.waves[i];
           var point = wave.points[pointIndex];
-          console.log(pointIndex);
           var angle = point.angle;
 
           this.ctx.beginPath();
@@ -289,6 +298,10 @@ var Circle = exports.Circle = function () {
   return Circle;
 }();
 
+// KLEINES ZEIGERMODELL 
+// #################################################################################################  //
+
+
 /**
  * Klasse zum Anzeigen vieler kleiner Zeigermodelle für
  * mehrere Punkte
@@ -303,6 +316,9 @@ var SmallCircleDisplay = exports.SmallCircleDisplay = function () {
   _createClass(SmallCircleDisplay, null, [{
     key: 'init',
 
+
+    // INITIALISIERUNG 
+    // ###############################################################################################  //
 
     /**
      * Initialisiere das Modell mit der gegebenen Welle
@@ -327,6 +343,9 @@ var SmallCircleDisplay = exports.SmallCircleDisplay = function () {
         i += 1;
       }
     }
+
+    // FUNKTIONEN 
+    // ###############################################################################################  //
 
     /**
      * Ändere die Welle
@@ -397,6 +416,9 @@ var SmallCircleDisplay = exports.SmallCircleDisplay = function () {
 
 var SmallCircle = exports.SmallCircle = function () {
 
+  // KONSTRUKTOR 
+  // ###############################################################################################  //
+
   /**
    * Erstelle ein neues Zeigermodell mit vorgegebenen x Wert
    * @param {number} x 
@@ -409,6 +431,9 @@ var SmallCircle = exports.SmallCircle = function () {
     this.x = x;
     this.point = SmallCircleDisplay.wave.points[Math.round(this.x / _PerformanceAnalyzer.RESOLUTION)];
   }
+
+  // FUNKTIONEN 
+  // ###############################################################################################  //
 
   /**
    * Zeichne das Zeigermodell
@@ -721,6 +746,13 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+/**
+ * Bearbeite die Umstellung des Programms zum Anzeigen einer longitudinalen Welle
+ * 
+ * @export
+ * @class LongitudinalHandler
+ */
+
 var LongitudinalHandler = function () {
   function LongitudinalHandler() {
     _classCallCheck(this, LongitudinalHandler);
@@ -728,6 +760,15 @@ var LongitudinalHandler = function () {
 
   _createClass(LongitudinalHandler, null, [{
     key: 'init',
+
+
+    /**
+     * Initialisiere die longitudinale Welle
+     * 
+     * @static
+     * @memberof LongitudinalHandler
+     */
+
     value: function init() {
 
       LongitudinalHandler.running = true;
@@ -772,7 +813,25 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+/*
+ * Eine Welle besteht aus mehreren Punkte die abhängig von einander unterschiedliche
+ * Werte zugewiesen bekommen. Die Anzahl der Punkte hängt von dieser Variable ab.
+ * Dies bedeuetet, dass bei 1 jedes Pixel einen Punkt zugewiesen bekommt.
+ * Bei 2 nur jedes zweite Pixel etc.
+ */
+
 var RESOLUTION = exports.RESOLUTION = 1;
+
+/**
+ * Analysiere die Leistung des Rechners und passe abhängig von der
+ * Leistungsfähigkeit das Programm an.
+ * Falls der Rechner nicht leistungsstark genug ist um die Welle in
+ * aktzeptabler Zeit darzustellen wird die schärfe der Darstellung herunter
+ * gedreht und somit der Rechenprozess vereinfacht
+ * 
+ * @export
+ * @class PerformanceAnalyzer
+ */
 
 var PerformanceAnalyzer = exports.PerformanceAnalyzer = function () {
     function PerformanceAnalyzer() {
@@ -781,6 +840,16 @@ var PerformanceAnalyzer = exports.PerformanceAnalyzer = function () {
 
     _createClass(PerformanceAnalyzer, null, [{
         key: '_checkPerformance',
+
+
+        /**
+         * Analyisiere die ungefähre Rechenleistung ( sehr primitiv )
+         * 
+         * @private
+         * @static
+         * @memberof PerformanceAnalyzer
+         */
+
         value: function _checkPerformance() {
 
             var a = 0;
@@ -790,6 +859,14 @@ var PerformanceAnalyzer = exports.PerformanceAnalyzer = function () {
                 a += Math.random() * 2;
             }
         }
+
+        /**
+         * Analysiere 10x die Rechenleistung und bilde den Mittelwert
+         * 
+         * @static
+         * @memberof PerformanceAnalyzer
+         */
+
     }, {
         key: 'execute',
         value: function execute() {
@@ -816,6 +893,15 @@ var PerformanceAnalyzer = exports.PerformanceAnalyzer = function () {
                 exports.RESOLUTION = RESOLUTION = 1;
             }
         }
+
+        /**
+         * Messe die Bilder pro Sekunde und passe das Programm dynamisch an,
+         * falls ein Einbruch der Bildrate erkennbar wird
+         * 
+         * @static
+         * @memberof PerformanceAnalyzer
+         */
+
     }, {
         key: 'update',
         value: function update() {
@@ -839,8 +925,6 @@ var PerformanceAnalyzer = exports.PerformanceAnalyzer = function () {
         value: function optimizeProgram() {
 
             if (PerformanceAnalyzer.averageFPS < 35 && RESOLUTION < 10) {
-
-                console.log('System optimization!');
 
                 exports.RESOLUTION = RESOLUTION += 1;
                 _World2.default.reInit();
@@ -866,7 +950,26 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+/**
+ * Einfache Klasse um einen Punkt auf der Welle zu simulieren
+ * 
+ * @export
+ * @class Point
+ */
+
 var Point = function () {
+
+    // KONSTRUKTOR 
+    // #############################################################################################  //
+
+    /**
+     * Erstelle eine neue Instanz eines Punktes
+     * @param {number} x   x Koordinate 
+     * @param {number} y   y Koordinate
+     * @param {number} index  Speicherplatz der in der Reihung belegt wird  
+     * @memberof Point
+     */
+
     function Point(x, y, index) {
         _classCallCheck(this, Point);
 
@@ -877,6 +980,17 @@ var Point = function () {
 
         this.still = true;
     }
+
+    // FUNKTIONEN 
+    // #############################################################################################  //
+
+    /**
+     * Vereinfache das aktuelle Bogenmaß
+     * 4PI -> 2PI
+     * 3PI -> 1.5PI
+     * 
+     * @memberof Point
+     */
 
     _createClass(Point, [{
         key: "breakAngleDown",
@@ -895,6 +1009,14 @@ var Point = function () {
                 this.angle = this.angle - correctFactor * (2 * Math.PI);
             }
         }
+
+        /**
+         * Ändere den aktuellen Winkel des Punktes
+         * 
+         * @param {number} angle Bogenmaß
+         * @memberof Point
+         */
+
     }, {
         key: "setAngle",
         value: function setAngle(angle) {
@@ -927,6 +1049,15 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+/**
+ * Diese Klasse ist für die Umstellung zur globalen Reflexion transversaler
+ * Wellen zuständig.
+ * Ebenso werden auch die grafischen Elemente für die Reflexion bereit gestellt
+ * 
+ * @export
+ * @class Reflect
+ */
+
 var Reflect = function () {
   function Reflect() {
     _classCallCheck(this, Reflect);
@@ -934,6 +1065,15 @@ var Reflect = function () {
 
   _createClass(Reflect, null, [{
     key: 'init',
+
+
+    /**
+     * Grundlegende Einstellung für die Reflexion
+     * 
+     * @static
+     * @memberof Reflect
+     */
+
     value: function init() {
 
       Reflect.vivisble = false;
@@ -943,6 +1083,15 @@ var Reflect = function () {
 
       Reflect.mode = 0; // 0 = nicht vorhanden, 1 = festes Ende, 2 = loses Ende
     }
+
+    /**
+     * Zeichne die grafischen Elemente wenn
+     * benötigt
+     * 
+     * @static
+     * @memberof Reflect
+     */
+
   }, {
     key: 'draw',
     value: function draw() {
@@ -952,9 +1101,6 @@ var Reflect = function () {
       if (Reflect.mode == 1) Reflect.ctx.fillStyle = 'black';else Reflect.ctx.fillStyle = 'rgb(75,150,255)';
       Reflect.ctx.fillRect(parseInt(Reflect.element.getAttribute('width')) - 10, 0, 10, 500);
     }
-  }, {
-    key: 'toggle',
-    value: function toggle() {}
   }]);
 
   return Reflect;
@@ -2059,8 +2205,11 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-// WELT 
-// #################################################################################################  //
+/**
+ * Klasse zum bündeln der verschiedenen Wellen in einer Klasse
+ * 
+ * @class World
+ */
 
 var World = function () {
   function World() {
