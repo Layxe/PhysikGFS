@@ -1,6 +1,7 @@
-import Display from './Display.js'
+import Display      from './Display.js'
 import {RESOLUTION} from './PerformanceAnalyzer.js'
-import Point from './Point.js'
+import Point        from './Point.js'
+import Reflect      from './Reflect.js'
 
 class Wave {
 
@@ -18,23 +19,27 @@ class Wave {
 
   constructor(c,frequency,amplitude) {
 
+    // Werte, welche die grundlegende Welle definieren
     this.c         = c
     this.frequency = frequency
     this.amplitude = amplitude
 
-    this.time = 0
     this.phi  = 0
+    this.time = 0
 
-    this.reverse = false
-    this.running = false
-    this.visible = true
-    this.transversal = true
+    // Boolsche Variablen für verschiedene Eigenschaften
+    this.reverse        = false
+    this.running        = false
+    this.visible        = true
+    this.transversal    = true
+    this.reflected      = false
+    this.showWaveLength = false
 
-    this.color = 'orange'
+    // Variablen zur grafischen Darstellung
+    this.color       = 'orange'
     this.strokeWidth = 3
 
-    this.highlightedPoints = []
-
+    // Oberfläche zum Bearbeiten der Welle
     this.interface = null;
 
     this.init()
@@ -66,6 +71,24 @@ class Wave {
 
   // FUNKTIONEN 
   // ###############################################################################################  //
+
+  /**
+   * Erstelle eine Kopie einer vorhandenen Welle
+   * @param {Wave} wave 
+   * @memberof Wave
+   */
+
+  static copyWave(wave) {
+
+    let newWave = new Wave(wave.c, wave.frequency, wave.amplitude)
+    newWave.reverse = wave.reverse
+    newWave.phi     = wave.phi
+    newWave.time    = wave.time
+    newWave.color   = wave.color
+
+    return newWave
+
+  }
 
   /**
    * Ändere die Phasenverschiebung der Welle
@@ -117,6 +140,7 @@ class Wave {
     if(!this.visible)
       return
 
+    // Zeichne eine transversale Welle
     if(this.transversal) {
 
       Display.ctx.beginPath()
@@ -148,23 +172,53 @@ class Wave {
 
       Display.ctx.stroke()
 
+      // Zeichne die Wellenlänge
+      if(this.showWaveLength) {
+
+        let startPoint = this.points[Math.round(50 / RESOLUTION)]
+        let waveLength = this.c / this.frequency
+        let y          = 249-Math.sin(startPoint.angle)*this.amplitude
+
+        Display.ctx.fillStyle = 'red'
+        Display.ctx.fillRect(startPoint.x, y, waveLength, 3)
+        Display.drawSimplePoint(startPoint.x, y, 'black', 5)
+        Display.drawSimplePoint(startPoint.x+waveLength, y+2, 'black', 5)
+
+      }
+
     } else {
 
+      // Zeichne eine longitudinale Welle
       for(let i = 0; i < Display.getPoints(); i++) {
 
         let point = this.points[i]
 
         let x = point.x + Math.sin(point.angle) * this.amplitude;
 
-
-        //if(!this.points[i].still) {
-
-
           Display.drawLongitudinalPoint(point, this.amplitude, this.color)
 
-        //}
-
       }
+
+    }
+
+    // Reflektiere die Welle falls erfordert
+    if(this.reflected && this.c * this.time > Display.width) {
+
+      // Erstelle eine Kopie in die umgekehrte Richtung
+      let newWave = Wave.copyWave(this)
+
+      newWave.reflected = false
+      newWave.reverse = !this.reverse
+
+      if(Reflect.mode == 1) {
+        newWave.setPhi(this.phi + 3.14)
+      }
+
+
+      newWave.setTime(this.time - Display.width / this.c)
+      newWave.draw()
+
+      new CombinedWave([this, newWave], 'green').draw()
 
     }
 
@@ -202,6 +256,7 @@ class Wave {
       let lambda = this.c * T;
 
       // Überprüfe, ob die Welle den Punkt schon erreicht hat
+      // Dies kommt nur bei transversalen Wellen zum Einsatz
       if (this.time * this.c >= i*RESOLUTION || !this.transversal) {
 
         let angle = (2 * Math.PI * (this.time / T - (i*RESOLUTION) / lambda)) + this.phi;
@@ -288,11 +343,23 @@ class CombinedWave {
 
   }
 
+  /**
+   * Füge eine neue Welle hinzu
+   * @param {Wave} wave 
+   * @memberof CombinedWave
+   */
+
   addWave(wave) {
 
     this.waves.push(wave)
 
   }
+
+  /**
+   * Lösche eine Welle
+   * @param {Wave} wave 
+   * @memberof CombinedWave
+   */
 
   removeWave(wave) {
 

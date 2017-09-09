@@ -1,6 +1,7 @@
 import {Wave, CombinedWave} from './Wave.js'
-import Display from './Display.js'
-import {UserInterface} from './UserInterface.js'
+import Display              from './Display.js'
+import {UserInterface}      from './UserInterface.js'
+import {SmallCircleDisplay} from './Circle'
 
 // WELT 
 // #################################################################################################  //
@@ -100,6 +101,30 @@ class World {
         wave.init()
 
     }
+
+    SmallCircleDisplay.changeWave(SmallCircleDisplay.wave)
+
+  }
+
+  static stopAllWaves() {
+
+    for(let i = 0; i < World.waves.length; i++) {
+
+    if(World.waves[i] instanceof Wave)
+      World.waves[i].stop()
+
+    }  
+
+  }
+
+  static startAllWaves() {
+
+    for(let i = 0; i < World.waves.length; i++) {
+
+    if(World.waves[i] instanceof Wave)
+      World.waves[i].start()
+
+    }  
 
   }
 

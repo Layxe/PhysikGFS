@@ -3,9 +3,10 @@ import World                               from './lib/World.js'
 import {Wave, CombinedWave}                from './lib/Wave.js'
 import Point                               from './lib/Point.js'
 import {PerformanceAnalyzer, RESOLUTION}   from './lib/PerformanceAnalyzer.js'
-import {Circle, SmallCircleDisplay}               from './lib/Circle.js'
+import {Circle, SmallCircleDisplay}        from './lib/Circle.js'
 import {UserInterface, StaticInterface}    from './lib/UserInterface.js'
 import LongitudinalHandler                 from './lib/LongitudinalHandler.js'
+import Reflect                             from './lib/Reflect'
 
 // VARIABLEN
 // #################################################################################################  //
@@ -26,6 +27,8 @@ let initProgram = () => {
   Display.init()
   // Initialisiere die statischen Bedienelemente
   StaticInterface.init()
+  // Initialisiere die Funktion eine Welle zu reflektieren
+  Reflect.init()
 
   // Erstelle die kombinierte Welle und lege sie in Platz 0 ab
   let combinedWave = World.createCombinedWave([]);
@@ -37,21 +40,12 @@ let initProgram = () => {
   mainCircle = new Circle(document.getElementById('clock-display'), null)
   mainCircle.setWaves([World.waves[1]])
   mainCircle.toggle()
-
-  // Starte die Animationsschleife
+  SmallCircleDisplay.init(World.waves[1])
 
   // Starte die erste Welle
   World.waves[1].start()
-  //World.waves[1].start();
-  //World.waves[1].color = 'red';
-  
-  // Initialisiere die kleinen Zeigermodelle
-  SmallCircleDisplay.init(World.waves[1])
 
-  document.getElementById('start-longitudinal').addEventListener('click', () => {
-    LongitudinalHandler.init()
-  });
-
+  // Starte die Animationsschleife
   loop()
 
 }
@@ -75,6 +69,8 @@ let loop = () => {
 
   Display.drawInterface()  // Zeichne das Koordinatensystem und weitere
                            // Elemente
+
+  Reflect.draw()
 
   mainCircle.draw(50 / RESOLUTION) // Zeichne das große Zeigermodell
 

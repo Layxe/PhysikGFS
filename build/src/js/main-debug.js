@@ -30,6 +30,10 @@ var _LongitudinalHandler = require('./lib/LongitudinalHandler.js');
 
 var _LongitudinalHandler2 = _interopRequireDefault(_LongitudinalHandler);
 
+var _Reflect = require('./lib/Reflect');
+
+var _Reflect2 = _interopRequireDefault(_Reflect);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 // VARIABLEN
@@ -51,6 +55,8 @@ var initProgram = function initProgram() {
   _Display2.default.init();
   // Initialisiere die statischen Bedienelemente
   _UserInterface.StaticInterface.init();
+  // Initialisiere die Funktion eine Welle zu reflektieren
+  _Reflect2.default.init();
 
   // Erstelle die kombinierte Welle und lege sie in Platz 0 ab
   var combinedWave = _World2.default.createCombinedWave([]);
@@ -62,21 +68,12 @@ var initProgram = function initProgram() {
   exports.mainCircle = mainCircle = new _Circle.Circle(document.getElementById('clock-display'), null);
   mainCircle.setWaves([_World2.default.waves[1]]);
   mainCircle.toggle();
-
-  // Starte die Animationsschleife
+  _Circle.SmallCircleDisplay.init(_World2.default.waves[1]);
 
   // Starte die erste Welle
   _World2.default.waves[1].start();
-  //World.waves[1].start();
-  //World.waves[1].color = 'red';
 
-  // Initialisiere die kleinen Zeigermodelle
-  _Circle.SmallCircleDisplay.init(_World2.default.waves[1]);
-
-  document.getElementById('start-longitudinal').addEventListener('click', function () {
-    _LongitudinalHandler2.default.init();
-  });
-
+  // Starte die Animationsschleife
   loop();
 };
 
@@ -99,6 +96,8 @@ var loop = function loop() {
   _Display2.default.drawInterface(); // Zeichne das Koordinatensystem und weitere
   // Elemente
 
+  _Reflect2.default.draw();
+
   mainCircle.draw(50 / _PerformanceAnalyzer.RESOLUTION); // Zeichne das große Zeigermodell
 
   _Circle.SmallCircleDisplay.draw();
@@ -109,11 +108,11 @@ var loop = function loop() {
   window.requestAnimationFrame(loop);
 };
 
-},{"./lib/Circle.js":2,"./lib/Display.js":3,"./lib/LongitudinalHandler.js":4,"./lib/PerformanceAnalyzer.js":5,"./lib/Point.js":6,"./lib/UserInterface.js":7,"./lib/Wave.js":9,"./lib/World.js":10}],2:[function(require,module,exports){
+},{"./lib/Circle.js":2,"./lib/Display.js":3,"./lib/LongitudinalHandler.js":4,"./lib/PerformanceAnalyzer.js":5,"./lib/Point.js":6,"./lib/Reflect":7,"./lib/UserInterface.js":8,"./lib/Wave.js":10,"./lib/World.js":11}],2:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
-    value: true
+  value: true
 });
 exports.SmallCircle = exports.SmallCircleDisplay = exports.Circle = undefined;
 
@@ -127,234 +126,320 @@ var _Display2 = _interopRequireDefault(_Display);
 
 var _PerformanceAnalyzer = require('./PerformanceAnalyzer.js');
 
+var _Point = require('./Point.js');
+
+var _Point2 = _interopRequireDefault(_Point);
+
+var _LongitudinalHandler = require('./LongitudinalHandler.js');
+
+var _LongitudinalHandler2 = _interopRequireDefault(_LongitudinalHandler);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var Circle = exports.Circle = function () {
-    function Circle(element, waves) {
-        _classCallCheck(this, Circle);
+  function Circle(element, waves) {
+    _classCallCheck(this, Circle);
 
-        this.waves = waves;
-        this.element = element;
-        this.ctx = this.element.getContext('2d');
-        this.visible = true;
-        this.gesAmplitude = 0;
-        this.showAngle = true;
+    this.waves = waves;
+    this.element = element;
+    this.ctx = this.element.getContext('2d');
+    this.visible = true;
+    this.gesAmplitude = 0;
+    this.showAngle = true;
+  }
+
+  /**
+   * Setze die Wellen, welche angezeigt werden
+   * 
+   * @param {array} waves
+   * @memberof Circle
+   */
+
+  _createClass(Circle, [{
+    key: 'setWaves',
+    value: function setWaves(waves) {
+      this.waves = waves;
     }
 
     /**
-     * Setze die Wellen, welche angezeigt werden
+     * Zeige / Verstecke das Zeigermodell
      * 
-     * @param {array} waves
      * @memberof Circle
      */
 
-    _createClass(Circle, [{
-        key: 'setWaves',
-        value: function setWaves(waves) {
-            this.waves = waves;
+  }, {
+    key: 'toggle',
+    value: function toggle() {
+
+      if (this.visible) {
+        this.element.style.display = 'none';
+        _Display2.default.element.style.left = '0';
+        _Display2.default.smallClockElement.style.left = '0';
+      } else {
+
+        if (_LongitudinalHandler2.default.running) return;
+
+        this.element.style.display = 'block';
+        _Display2.default.element.style.left = '500px';
+        _Display2.default.smallClockElement.style.left = '500px';
+      }
+
+      this.visible = !this.visible;
+    }
+
+    /**
+     * Zeichne das Zeigermodell
+     * 
+     * @param {number} pointIndex Verwendeter Punkt
+     * @memberof Circle
+     */
+
+  }, {
+    key: 'draw',
+    value: function draw(_pointIndex) {
+
+      var pointIndex = Math.round(_pointIndex);
+
+      if (this.visible && this.waves != null) {
+
+        var gesY = 0;
+        var gesAmplitude = 0;
+        var marginLeft;
+        var x;
+        var y;
+
+        this.ctx.clearRect(0, 0, 500, 500);
+
+        // Berechne die gesamte Amplitude
+        for (var i = 0; i < this.waves.length; i++) {
+          gesAmplitude += this.waves[i].amplitude;
         }
 
-        /**
-         * Zeige / Verstecke das Zeigermodell
-         * 
-         * @memberof Circle
-         */
+        // Berechne die neue Position des Canvas, falls sich
+        // die maximale Amplitude ändert
+        if (this.gesAmplitude != gesAmplitude) {
 
-    }, {
-        key: 'toggle',
-        value: function toggle() {
-
-            if (this.visible) {
-                this.element.style.display = 'none';
-                _Display2.default.element.style.left = '0';
-                _Display2.default.smallClockElement.style.left = '0';
-            } else {
-                this.element.style.display = 'block';
-                _Display2.default.element.style.left = '500px';
-                _Display2.default.smallClockElement.style.left = '500px';
-            }
-
-            this.visible = !this.visible;
+          this.gesAmplitude = gesAmplitude;
+          this.element.style.left = gesAmplitude - 250 + 'px';
         }
 
-        /**
-         * Zeichne das Zeigermodell
-         * 
-         * @param {number} pointIndex Verwendeter Punkt
-         * @memberof Circle
-         */
+        marginLeft = 490 - gesAmplitude;
 
-    }, {
-        key: 'draw',
-        value: function draw(pointIndex) {
+        x = marginLeft;
+        y = 250;
 
-            if (this.visible && this.waves != null) {
+        this.ctx.lineWidth = 3;
 
-                var gesY = 0;
-                var gesAmplitude = 0;
-                var marginLeft;
-                var x;
-                var y;
+        var offset = {
+          x: 0,
+          y: 0
 
-                this.ctx.clearRect(0, 0, 500, 500);
+          // Zeichne einen neuen Zeiger für jede Welle
+        };for (var i = 0; i < this.waves.length; i++) {
 
-                // Berechne die gesamte Amplitude
-                for (var i = 0; i < this.waves.length; i++) {
-                    gesAmplitude += this.waves[i].amplitude;
-                }
+          var wave = this.waves[i];
+          var point = wave.points[pointIndex];
+          console.log(pointIndex);
+          var angle = point.angle;
 
-                // Berechne die neue Position des Canvas, falls sich
-                // die maximale Amplitude ändert
-                if (this.gesAmplitude != gesAmplitude) {
+          this.ctx.beginPath();
+          this.ctx.strokeStyle = wave.color;
 
-                    this.gesAmplitude = gesAmplitude;
-                    this.element.style.left = gesAmplitude - 250 + 'px';
-                }
+          // Erstelle eine Kreisform zum Anzeigen der aktuellen Zeigerposition
+          if (this.showAngle && angle != wave.phi) {
 
-                marginLeft = 490 - gesAmplitude;
+            this.ctx.beginPath();
 
-                x = marginLeft;
-                y = 250;
+            var startAngle = 2 * Math.PI - wave.phi;
+            var circleAngle = 2 * Math.PI - angle;
 
-                this.ctx.lineWidth = 3;
+            this.ctx.arc(x, y, wave.amplitude / 2, startAngle, circleAngle, true);
+            this.ctx.stroke();
+          }
 
-                // Zeichne einen neuen Zeiger für jede Welle
-                for (var i = 0; i < this.waves.length; i++) {
+          offset.x = Math.cos(angle) * wave.amplitude;
+          offset.y = -Math.sin(angle) * wave.amplitude;
 
-                    var wave = this.waves[i];
-                    var point = wave.points[pointIndex];
-                    var angle = point.angle;
+          (0, _Utils.drawArrow)(this.ctx, x, y, x + offset.x, y + offset.y);
 
-                    var newX = Math.cos(angle) * wave.amplitude + marginLeft;
-                    var newY = -Math.sin(angle) * wave.amplitude + 250;
+          this.ctx.stroke();
 
-                    this.ctx.beginPath();
-                    this.ctx.strokeStyle = wave.color;
+          x += offset.x;
+          y += offset.y;
 
-                    // Erstelle eine Kreisform zum Anzeigen der aktuellen Zeigerposition
-                    if (this.showAngle && angle != wave.phi) {
+          // Hebe den Punkt hervor
+          if (!_LongitudinalHandler2.default.running && wave.visible) _Display2.default.drawPointOnWave(point, wave.amplitude, wave.color, 5);
 
-                        this.ctx.beginPath();
-
-                        var startAngle = 2 * Math.PI - wave.phi;
-                        var circleAngle = 2 * Math.PI - angle;
-
-                        this.ctx.arc(x, y, wave.amplitude / 2, startAngle, circleAngle, true);
-                        this.ctx.stroke();
-                    }
-
-                    // Zeichne den Pfeil
-                    if (i != 0) {
-                        (0, _Utils.drawArrow)(this.ctx, x, y, newX - marginLeft + x, newY - 250 + y); // Anschließende Pfeile
-                    } else {
-                        (0, _Utils.drawArrow)(this.ctx, x, y, newX, newY); // Erster Pfeil
-                    }
-
-                    this.ctx.stroke();
-
-                    x = newX;
-                    y = newY;
-
-                    // Hebe den Punkt hervor
-                    _Display2.default.drawPointOnWave(point, wave.amplitude, wave.color, 5);
-
-                    gesY += newY;
-                }
-
-                // Zeichne den Kreis
-                this.ctx.lineWidth = 2;
-                this.ctx.strokeStyle = 'black';
-
-                this.ctx.beginPath();
-                this.ctx.arc(490 - gesAmplitude, 250, gesAmplitude + 3, 0, 2 * Math.PI);
-                this.ctx.stroke();
-            }
+          gesY += offset.y;
         }
-    }]);
 
-    return Circle;
+        // Zeichne den Kreis
+        this.ctx.lineWidth = 2;
+        this.ctx.strokeStyle = 'black';
+
+        this.ctx.beginPath();
+        this.ctx.arc(490 - gesAmplitude, 250, gesAmplitude + 3, 0, 2 * Math.PI);
+        this.ctx.stroke();
+      }
+    }
+  }]);
+
+  return Circle;
 }();
+
+/**
+ * Klasse zum Anzeigen vieler kleiner Zeigermodelle für
+ * mehrere Punkte
+ * @class SmallCircleDisplay
+ */
 
 var SmallCircleDisplay = exports.SmallCircleDisplay = function () {
-    function SmallCircleDisplay() {
-        _classCallCheck(this, SmallCircleDisplay);
+  function SmallCircleDisplay() {
+    _classCallCheck(this, SmallCircleDisplay);
+  }
+
+  _createClass(SmallCircleDisplay, null, [{
+    key: 'init',
+
+
+    /**
+     * Initialisiere das Modell mit der gegebenen Welle
+     * @param {Wave} wave 
+     */
+
+    value: function init(wave) {
+
+      SmallCircleDisplay.element = document.getElementById('small-clock-display');
+      SmallCircleDisplay.circles = new Array();
+      SmallCircleDisplay.wave = wave;
+      SmallCircleDisplay.ctx = SmallCircleDisplay.element.getContext('2d');
+
+      SmallCircleDisplay.visible = false;
+      SmallCircleDisplay.element.style.display = 'none';
+
+      var i = 0;
+
+      for (var x = 50; x < parseInt(SmallCircleDisplay.element.getAttribute('width')); x += 90) {
+
+        SmallCircleDisplay.circles[i] = new SmallCircle(x);
+        i += 1;
+      }
     }
 
-    _createClass(SmallCircleDisplay, null, [{
-        key: 'init',
-        value: function init(wave) {
+    /**
+     * Ändere die Welle
+     * @param {Wave} wave 
+     */
 
-            SmallCircleDisplay.element = document.getElementById('small-clock-display');
-            SmallCircleDisplay.circles = new Array();
-            SmallCircleDisplay.wave = wave;
-            SmallCircleDisplay.ctx = SmallCircleDisplay.element.getContext('2d');
+  }, {
+    key: 'changeWave',
+    value: function changeWave(wave) {
 
-            var i = 0;
+      SmallCircleDisplay.wave = wave;
 
-            for (var x = 30; x < parseInt(SmallCircleDisplay.element.getAttribute('width')); x += 90) {
+      var i = 0;
 
-                SmallCircleDisplay.circles[i] = new SmallCircle(x);
-                i += 1;
-            }
-        }
-    }, {
-        key: 'draw',
-        value: function draw() {
+      for (var x = 50; x < parseInt(SmallCircleDisplay.element.getAttribute('width')); x += 90) {
 
-            SmallCircleDisplay.ctx.fillStyle = 'white';
-            SmallCircleDisplay.ctx.fillRect(0, 0, 2000, 50);
-            SmallCircleDisplay.ctx.strokeStyle = SmallCircleDisplay.wave.color;
+        SmallCircleDisplay.circles[i] = new SmallCircle(x);
+        i += 1;
+      }
+    }
 
-            for (var i = 0; i < SmallCircleDisplay.circles.length; i++) {
+    /**
+     * Zeige / Verstecke die Darstellung
+     */
 
-                SmallCircleDisplay.circles[i].draw();
-            }
+  }, {
+    key: 'toggle',
+    value: function toggle() {
 
-            //SmallCircleDisplay.ctx.stroke()
-        }
-    }]);
+      if (SmallCircleDisplay.visible) SmallCircleDisplay.element.style.display = 'none';else SmallCircleDisplay.element.style.display = 'block';
 
-    return SmallCircleDisplay;
+      SmallCircleDisplay.visible = !SmallCircleDisplay.visible;
+    }
+
+    /**
+     * Zeichne die Zeigermodelle
+     */
+
+  }, {
+    key: 'draw',
+    value: function draw() {
+
+      if (!SmallCircleDisplay.visible || !SmallCircleDisplay.wave.visible) return;
+
+      SmallCircleDisplay.ctx.fillStyle = 'white';
+      SmallCircleDisplay.ctx.fillRect(0, 0, 2000, 50);
+      SmallCircleDisplay.ctx.strokeStyle = SmallCircleDisplay.wave.color;
+      SmallCircleDisplay.ctx.lineWidth = 3;
+
+      var wave = SmallCircleDisplay.wave;
+
+      for (var i = 0; i < SmallCircleDisplay.circles.length; i++) {
+
+        var dummyPoint = SmallCircleDisplay.circles[i].point;
+        SmallCircleDisplay.circles[i].draw();
+
+        if (!_LongitudinalHandler2.default.running) _Display2.default.drawPointOnWave(dummyPoint, wave.amplitude, 'black', 3);
+      }
+    }
+  }]);
+
+  return SmallCircleDisplay;
 }();
+
+/**
+ * Kleines Zeigermodell
+ */
 
 var SmallCircle = exports.SmallCircle = function () {
-    function SmallCircle(x) {
-        _classCallCheck(this, SmallCircle);
 
-        this.radius = 25;
-        this.x = x;
+  /**
+   * Erstelle ein neues Zeigermodell mit vorgegebenen x Wert
+   * @param {number} x 
+   */
+
+  function SmallCircle(x) {
+    _classCallCheck(this, SmallCircle);
+
+    this.radius = 25;
+    this.x = x;
+    this.point = SmallCircleDisplay.wave.points[Math.round(this.x / _PerformanceAnalyzer.RESOLUTION)];
+  }
+
+  /**
+   * Zeichne das Zeigermodell
+   */
+
+  _createClass(SmallCircle, [{
+    key: 'draw',
+    value: function draw() {
+
+      var angle = this.point.angle;
+
+      var direction = {
+        x: Math.cos(angle) * 25,
+        y: Math.sin(angle) * 25
+      };
+
+      SmallCircleDisplay.ctx.beginPath();
+      SmallCircleDisplay.ctx.moveTo(this.x, 25);
+      SmallCircleDisplay.ctx.lineTo(this.x + direction.x, 25 - direction.y);
+      SmallCircleDisplay.ctx.stroke();
     }
+  }]);
 
-    _createClass(SmallCircle, [{
-        key: 'draw',
-        value: function draw() {
-
-            var point = SmallCircleDisplay.wave.points[Math.round(this.x / _PerformanceAnalyzer.RESOLUTION)];
-
-            var angle = point.angle;
-
-            var direction = {
-                x: Math.cos(angle),
-                y: Math.sin(angle)
-
-                //drawArrow(SmallCircleDisplay.ctx, this.x, 25, this.x+direction.x, 25-direction.y)
-            };SmallCircleDisplay.ctx.beginPath();
-            SmallCircleDisplay.ctx.moveTo(this.x, 25);
-            SmallCircleDisplay.ctx.lineTo(this.x + direction.x, this.y + direction.y);
-            SmallCircleDisplay.ctx.stroke();
-        }
-    }]);
-
-    return SmallCircle;
+  return SmallCircle;
 }();
 
-},{"./Display.js":3,"./PerformanceAnalyzer.js":5,"./Utils.js":8}],3:[function(require,module,exports){
+},{"./Display.js":3,"./LongitudinalHandler.js":4,"./PerformanceAnalyzer.js":5,"./Point.js":6,"./Utils.js":9}],3:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
-    value: true
+  value: true
 });
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -371,242 +456,242 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
  */
 
 var Display = function () {
-    function Display() {
-        _classCallCheck(this, Display);
+  function Display() {
+    _classCallCheck(this, Display);
+  }
+
+  _createClass(Display, null, [{
+    key: 'init',
+
+
+    // INITIALISIERUNG 
+    // #############################################################################################  //
+
+    /**
+     * Aktualisiere die Breite sowie die Höhe der Zeichenoberfläche
+     * 
+     * @static
+     * @memberof Display
+     */
+
+    value: function init() {
+
+      var wrapper = document.getElementById('display-wrapper');
+
+      Display.width = wrapper.clientWidth;
+      Display.height = wrapper.clientHeight;
+
+      Display.element = document.getElementById('display');
+      Display.ctx = Display.element.getContext('2d');
+
+      Display.smallClockElement = document.getElementById('small-clock-display');
+
+      Display.element.setAttribute('width', Display.width.toString());
+      Display.element.setAttribute('height', Display.height.toString());
+
+      Display.smallClockElement.setAttribute('width', Display.width.toString());
+      Display.smallClockElement.setAttribute('height', '50');
     }
 
-    _createClass(Display, null, [{
-        key: 'init',
+    // FUNKTIONEN 
+    // #############################################################################################  //
 
+    /**
+     * Zeichne einen Punkt einer longitudinalen Welle
+     * 
+     * @static
+     * @param {any} point 
+     * @param {any} amplitude 
+     * @param {any} color 
+     * @memberof Display
+     */
 
-        // INITIALISIERUNG 
-        // #############################################################################################  //
+  }, {
+    key: 'drawLongitudinalPoint',
+    value: function drawLongitudinalPoint(point, amplitude, color) {
 
-        /**
-         * Aktualisiere die Breite sowie die Höhe der Zeichenoberfläche
-         * 
-         * @static
-         * @memberof Display
-         */
+      var x = point.x - Math.cos(point.angle) * amplitude;
+      var y = 250 + -Math.sin(point.angle) * amplitude; // -sin weil das Koordinatensystem in y Richtung umgedreht ist
 
-        value: function init() {
+      y = 250;
 
-            var wrapper = document.getElementById('display-wrapper');
+      Display.ctx.fillStyle = color;
 
-            Display.width = wrapper.clientWidth;
-            Display.height = wrapper.clientHeight;
+      Display.ctx.fillRect(x, y - 20, 1, 40);
 
-            Display.element = document.getElementById('display');
-            Display.ctx = Display.element.getContext('2d');
+      if (point.index % 25 == 0) Display.drawSimplePoint(x, 250, 'black', 5);
 
-            Display.smallClockElement = document.getElementById('small-clock-display');
+      //Display.ctx.fillRect(x,y,3,3)
+    }
 
-            Display.element.setAttribute('width', Display.width.toString());
-            Display.element.setAttribute('height', Display.height.toString());
+    /**
+     * Zeichne einen Punkt einer Welle
+     * 
+     * @static
+     * @param {Point} point 
+     * @param {number} amplitude 
+     * @param {string} color 
+     * @memberof Display
+     */
 
-            Display.smallClockElement.setAttribute('width', Display.width.toString());
-            Display.smallClockElement.setAttribute('height', '50');
+  }, {
+    key: 'drawPoint',
+    value: function drawPoint(point, amplitude, color) {
+
+      var x = point.x;
+      var y = 250 + -Math.sin(point.angle) * amplitude; // -sin weil das Koordinatensystem in y Richtung umgedreht ist
+
+      Display.ctx.fillStyle = color;
+      //Display.ctx.fillRect(x,y, 1, 1);
+
+      Display.ctx.lineTo(x, y);
+    }
+
+    /**
+     * Zeichne einen speziellen Punkt auf einer Welle
+     * 
+     * @static
+     * @param {Point} point 
+     * @param {number} amplitude 
+     * @param {string} color 
+     * @param {number} radius 
+     * @memberof Display
+     */
+
+  }, {
+    key: 'drawPointOnWave',
+    value: function drawPointOnWave(point, amplitude, color, radius) {
+
+      var x = point.x;
+      var y = 250 + -Math.sin(point.angle) * amplitude;
+
+      Display.ctx.fillStyle = color;
+      Display.ctx.beginPath();
+      Display.ctx.arc(x, y, radius, 0, 2 * Math.PI);
+      Display.ctx.fillStyle = 'black';
+      Display.ctx.fill();
+    }
+
+    /**
+     * Zeichne einen Punkt mit gegebenen x und y Koordinaten
+     * 
+     * @static
+     * @param {number} x 
+     * @param {number} y 
+     * @param {string} color 
+     * @param {number} radius 
+     * @memberof Display
+     */
+
+  }, {
+    key: 'drawSimplePoint',
+    value: function drawSimplePoint(x, y, color, radius) {
+
+      Display.ctx.fillStyle = color;
+      Display.ctx.beginPath();
+      Display.ctx.arc(x, y, radius, 0, 2 * Math.PI);
+      Display.ctx.fillStyle = 'black';
+      Display.ctx.fill();
+    }
+
+    /**
+     * Zeichne eine Welle, welche aus mehreren Wellen besteht
+     * 
+     * @static
+     * @param {array} waves 
+     * @param {string} color 
+     * @memberof Display
+     */
+
+  }, {
+    key: 'drawCombinedWave',
+    value: function drawCombinedWave(waves, color) {
+
+      Display.ctx.beginPath();
+      Display.ctx.strokeStyle = color;
+
+      for (var k = 0; k < Display.getPoints(); k++) {
+
+        var still = false;
+        var x = k * _PerformanceAnalyzer.RESOLUTION;
+        var y = 0;
+
+        for (var i = 0; i < waves.length; i++) {
+
+          y -= Math.sin(waves[i].points[k].angle) * waves[i].amplitude;
+
+          if (waves[i].points[k].still) {
+            still = true;
+          }
         }
 
-        // FUNKTIONEN 
-        // #############################################################################################  //
+        y += 250;
 
-        /**
-         * Zeichne einen Punkt einer longitudinalen Welle
-         * 
-         * @static
-         * @param {any} point 
-         * @param {any} amplitude 
-         * @param {any} color 
-         * @memberof Display
-         */
-
-    }, {
-        key: 'drawLongitudinalPoint',
-        value: function drawLongitudinalPoint(point, amplitude, color) {
-
-            var x = point.x - Math.cos(point.angle) * amplitude;
-            var y = 250 + -Math.sin(point.angle) * amplitude; // -sin weil das Koordinatensystem in y Richtung umgedreht ist
-
-            y = 250;
-
-            Display.ctx.fillStyle = color;
-
-            Display.ctx.fillRect(x, y - 20, 1, 40);
-
-            if (point.index % 25 == 0) Display.drawSimplePoint(x, 250, 'black', 5);
-
-            //Display.ctx.fillRect(x,y,3,3)
+        // Falls nicht alle Punkte sich überlappen soll nicht gezeichnet werden
+        if (still) {
+          continue;
         }
 
-        /**
-         * Zeichne einen Punkt einer Welle
-         * 
-         * @static
-         * @param {Point} point 
-         * @param {number} amplitude 
-         * @param {string} color 
-         * @memberof Display
-         */
+        Display.ctx.fillStyle = color;
+        Display.ctx.lineTo(x, y);
+      }
 
-    }, {
-        key: 'drawPoint',
-        value: function drawPoint(point, amplitude, color) {
+      Display.ctx.stroke();
+      Display.ctx.closePath();
+    }
 
-            var x = point.x;
-            var y = 250 + -Math.sin(point.angle) * amplitude; // -sin weil das Koordinatensystem in y Richtung umgedreht ist
+    /**
+     * Zeichne Hilfselemente wie z.B. die x und y Achse
+     * 
+     * @static
+     * @memberof Display
+     */
 
-            Display.ctx.fillStyle = color;
-            //Display.ctx.fillRect(x,y, 1, 1);
+  }, {
+    key: 'drawInterface',
+    value: function drawInterface() {
 
-            Display.ctx.lineTo(x, y);
-        }
+      var y = 2;
 
-        /**
-         * Zeichne einen speziellen Punkt auf einer Welle
-         * 
-         * @static
-         * @param {Point} point 
-         * @param {number} amplitude 
-         * @param {string} color 
-         * @param {number} radius 
-         * @memberof Display
-         */
+      Display.ctx.fillStyle = 'black';
+      Display.ctx.strokeStyle = 'black';
+      Display.ctx.lineWidth = 2;
+      Display.ctx.font = '20px Arial';
 
-    }, {
-        key: 'drawPointOnWave',
-        value: function drawPointOnWave(point, amplitude, color, radius) {
+      // X-Achse
+      Display.ctx.beginPath();
+      Display.ctx.moveTo(0, 250);
+      Display.ctx.lineTo(Display.width, 250);
+      Display.ctx.stroke();
+      // Y-Achse
+      Display.ctx.beginPath();
+      for (var i = 50; i <= 500; i += 100) {
+        Display.ctx.moveTo(0, i);
+        Display.ctx.lineTo(15, i);
 
-            var x = point.x;
-            var y = 250 + -Math.sin(point.angle) * amplitude;
+        Display.ctx.fillText(y.toString(), 0, i - 10);
+        y--;
+      }
 
-            Display.ctx.fillStyle = color;
-            Display.ctx.beginPath();
-            Display.ctx.arc(x, y, radius, 0, 2 * Math.PI);
-            Display.ctx.fillStyle = 'black';
-            Display.ctx.fill();
-        }
+      Display.ctx.stroke();
+    }
 
-        /**
-         * Zeichne einen Punkt mit gegebenen x und y Koordinaten
-         * 
-         * @static
-         * @param {number} x 
-         * @param {number} y 
-         * @param {string} color 
-         * @param {number} radius 
-         * @memberof Display
-         */
+    /**
+     * Erhalte die Anzahl an Punkten pro Welle
+     * 
+     * @static
+     * @returns {number} Anzahl der Punkte
+     * @memberof Display
+     */
 
-    }, {
-        key: 'drawSimplePoint',
-        value: function drawSimplePoint(x, y, color, radius) {
+  }, {
+    key: 'getPoints',
+    value: function getPoints() {
+      return Math.round(Display.width / _PerformanceAnalyzer.RESOLUTION);
+    }
+  }]);
 
-            Display.ctx.fillStyle = color;
-            Display.ctx.beginPath();
-            Display.ctx.arc(x, y, radius, 0, 2 * Math.PI);
-            Display.ctx.fillStyle = 'black';
-            Display.ctx.fill();
-        }
-
-        /**
-         * Zeichne eine Welle, welche aus mehreren Wellen besteht
-         * 
-         * @static
-         * @param {array} waves 
-         * @param {string} color 
-         * @memberof Display
-         */
-
-    }, {
-        key: 'drawCombinedWave',
-        value: function drawCombinedWave(waves, color) {
-
-            Display.ctx.beginPath();
-            Display.ctx.strokeStyle = color;
-
-            for (var k = 0; k < Display.getPoints(); k++) {
-
-                var still = false;
-                var x = k * _PerformanceAnalyzer.RESOLUTION;
-                var y = 0;
-
-                for (var i = 0; i < waves.length; i++) {
-
-                    y -= Math.sin(waves[i].points[k].angle) * waves[i].amplitude;
-
-                    if (waves[i].points[k].still) {
-                        still = true;
-                    }
-                }
-
-                y += 250;
-
-                // Falls nicht alle Punkte sich überlappen soll nicht gezeichnet werden
-                if (still) {
-                    continue;
-                }
-
-                Display.ctx.fillStyle = color;
-                Display.ctx.lineTo(x, y);
-            }
-
-            Display.ctx.stroke();
-            Display.ctx.closePath();
-        }
-
-        /**
-         * Zeichne Hilfselemente wie z.B. die x und y Achse
-         * 
-         * @static
-         * @memberof Display
-         */
-
-    }, {
-        key: 'drawInterface',
-        value: function drawInterface() {
-
-            var y = 2;
-
-            Display.ctx.fillStyle = 'black';
-            Display.ctx.strokeStyle = 'black';
-            Display.ctx.lineWidth = 2;
-            Display.ctx.font = '20px Arial';
-
-            // X-Achse
-            Display.ctx.beginPath();
-            Display.ctx.moveTo(0, 250);
-            Display.ctx.lineTo(Display.width, 250);
-            Display.ctx.stroke();
-            // Y-Achse
-            Display.ctx.beginPath();
-            for (var i = 50; i <= 500; i += 100) {
-                Display.ctx.moveTo(0, i);
-                Display.ctx.lineTo(15, i);
-
-                Display.ctx.fillText(y.toString(), 0, i - 10);
-                y--;
-            }
-
-            Display.ctx.stroke();
-        }
-
-        /**
-         * Erhalte die Anzahl an Punkten pro Welle
-         * 
-         * @static
-         * @returns {number} Anzahl der Punkte
-         * @memberof Display
-         */
-
-    }, {
-        key: 'getPoints',
-        value: function getPoints() {
-            return Math.round(Display.width / _PerformanceAnalyzer.RESOLUTION);
-        }
-    }]);
-
-    return Display;
+  return Display;
 }();
 
 exports.default = Display;
@@ -615,7 +700,7 @@ exports.default = Display;
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
-    value: true
+  value: true
 });
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -626,42 +711,54 @@ var _World2 = _interopRequireDefault(_World);
 
 var _Wave = require('./Wave.js');
 
+var _Main = require('./../Main.js');
+
+var _Reflect = require('./Reflect.js');
+
+var _Reflect2 = _interopRequireDefault(_Reflect);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var LongitudinalHandler = function () {
-    function LongitudinalHandler() {
-        _classCallCheck(this, LongitudinalHandler);
+  function LongitudinalHandler() {
+    _classCallCheck(this, LongitudinalHandler);
+  }
+
+  _createClass(LongitudinalHandler, null, [{
+    key: 'init',
+    value: function init() {
+
+      LongitudinalHandler.running = true;
+
+      if (_Main.mainCircle.visible) _Main.mainCircle.toggle();
+
+      for (var i = 0; i < _World2.default.waves.length; i++) {
+
+        if (_World2.default.waves[i] != undefined && _World2.default.waves[i] instanceof _Wave.Wave) _World2.default.waves[i].interface.deleteWave();
+      }
+
+      _World2.default.waves = [];
+
+      var wave = _World2.default.createWave(1, 0.0025, 50);
+      wave.transversal = false;
+      wave.start();
+
+      _Reflect2.default.mode = 0;
     }
+  }]);
 
-    _createClass(LongitudinalHandler, null, [{
-        key: 'init',
-        value: function init() {
-
-            for (var i = 0; i < _World2.default.waves.length; i++) {
-
-                if (_World2.default.waves[i] != undefined && _World2.default.waves[i] instanceof _Wave.Wave) _World2.default.waves[i].interface.deleteWave();
-            }
-
-            _World2.default.waves = [];
-
-            var wave = _World2.default.createWave(1, 0.0025, 50);
-            wave.transversal = false;
-            wave.start();
-        }
-    }]);
-
-    return LongitudinalHandler;
+  return LongitudinalHandler;
 }();
 
 exports.default = LongitudinalHandler;
 
-},{"./Wave.js":9,"./World.js":10}],5:[function(require,module,exports){
+},{"./../Main.js":1,"./Reflect.js":7,"./Wave.js":10,"./World.js":11}],5:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
-        value: true
+    value: true
 });
 exports.PerformanceAnalyzer = exports.RESOLUTION = undefined;
 
@@ -678,87 +775,87 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 var RESOLUTION = exports.RESOLUTION = 1;
 
 var PerformanceAnalyzer = exports.PerformanceAnalyzer = function () {
-        function PerformanceAnalyzer() {
-                _classCallCheck(this, PerformanceAnalyzer);
+    function PerformanceAnalyzer() {
+        _classCallCheck(this, PerformanceAnalyzer);
+    }
+
+    _createClass(PerformanceAnalyzer, null, [{
+        key: '_checkPerformance',
+        value: function _checkPerformance() {
+
+            var a = 0;
+
+            for (var i = 0; i < 50000; i++) {
+
+                a += Math.random() * 2;
+            }
         }
+    }, {
+        key: 'execute',
+        value: function execute() {
 
-        _createClass(PerformanceAnalyzer, null, [{
-                key: '_checkPerformance',
-                value: function _checkPerformance() {
+            // Initialisierung
 
-                        var a = 0;
+            PerformanceAnalyzer.FPS = 0;
+            PerformanceAnalyzer.oldTime = new Date().getTime();
+            PerformanceAnalyzer.averageFPS = 60;
 
-                        for (var i = 0; i < 50000; i++) {
+            // Messung der durchschnittlichen Leistung
+            PerformanceAnalyzer.performanceScore = 0;
 
-                                a += Math.random() * 2;
-                        }
-                }
-        }, {
-                key: 'execute',
-                value: function execute() {
+            for (var i = 0; i < 10; i++) {
 
-                        // Initialisierung
+                var time = new Date().getTime();
+                PerformanceAnalyzer._checkPerformance();
+                PerformanceAnalyzer.performanceScore += new Date().getTime() - time;
+            }
 
-                        PerformanceAnalyzer.FPS = 0;
-                        PerformanceAnalyzer.oldTime = new Date().getTime();
-                        PerformanceAnalyzer.averageFPS = 60;
+            exports.RESOLUTION = RESOLUTION = Math.round(PerformanceAnalyzer.performanceScore / 15);
 
-                        // Messung der durchschnittlichen Leistung
-                        PerformanceAnalyzer.performanceScore = 0;
+            if (RESOLUTION <= 0) {
+                exports.RESOLUTION = RESOLUTION = 1;
+            }
+        }
+    }, {
+        key: 'update',
+        value: function update() {
 
-                        for (var i = 0; i < 10; i++) {
+            PerformanceAnalyzer.FPS += 1;
 
-                                var time = new Date().getTime();
-                                PerformanceAnalyzer._checkPerformance();
-                                PerformanceAnalyzer.performanceScore += new Date().getTime() - time;
-                        }
+            if (new Date().getTime() > PerformanceAnalyzer.oldTime + 1000) {
 
-                        exports.RESOLUTION = RESOLUTION = Math.round(PerformanceAnalyzer.performanceScore / 15);
+                document.getElementById('info-log').innerHTML = 'FPS: ' + PerformanceAnalyzer.FPS + ' at ' + RESOLUTION;
 
-                        if (RESOLUTION <= 0) {
-                                exports.RESOLUTION = RESOLUTION = 1;
-                        }
-                }
-        }, {
-                key: 'update',
-                value: function update() {
+                PerformanceAnalyzer.averageFPS = PerformanceAnalyzer.FPS;
 
-                        PerformanceAnalyzer.FPS += 1;
+                PerformanceAnalyzer.optimizeProgram();
 
-                        if (new Date().getTime() > PerformanceAnalyzer.oldTime + 1000) {
+                PerformanceAnalyzer.FPS = 0;
+                PerformanceAnalyzer.oldTime = new Date().getTime();
+            }
+        }
+    }, {
+        key: 'optimizeProgram',
+        value: function optimizeProgram() {
 
-                                document.getElementById('info-log').innerHTML = 'FPS: ' + PerformanceAnalyzer.FPS + ' at ' + RESOLUTION;
+            if (PerformanceAnalyzer.averageFPS < 35 && RESOLUTION < 10) {
 
-                                PerformanceAnalyzer.averageFPS = PerformanceAnalyzer.FPS;
+                console.log('System optimization!');
 
-                                PerformanceAnalyzer.optimizeProgram();
+                exports.RESOLUTION = RESOLUTION += 1;
+                _World2.default.reInit();
+            } else if (PerformanceAnalyzer.averageFPS > 52 && RESOLUTION > 1) {
 
-                                PerformanceAnalyzer.FPS = 0;
-                                PerformanceAnalyzer.oldTime = new Date().getTime();
-                        }
-                }
-        }, {
-                key: 'optimizeProgram',
-                value: function optimizeProgram() {
+                exports.RESOLUTION = RESOLUTION -= 1;
+                _World2.default.reInit();
+            }
+        }
+    }]);
 
-                        if (PerformanceAnalyzer.averageFPS < 35 && RESOLUTION < 6) {
-
-                                console.log('System optimization!');
-
-                                exports.RESOLUTION = RESOLUTION += 1;
-                                _World2.default.reInit();
-                        } else if (PerformanceAnalyzer.averageFPS > 60 && RESOLUTION > 1) {
-
-                                exports.RESOLUTION = RESOLUTION -= 1;
-                                _World2.default.reInit();
-                        }
-                }
-        }]);
-
-        return PerformanceAnalyzer;
+    return PerformanceAnalyzer;
 }();
 
-},{"./World.js":10}],6:[function(require,module,exports){
+},{"./World.js":11}],6:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -815,23 +912,87 @@ exports.default = Point;
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _Wave = require('./Wave.js');
+
+var _World = require('./World.js');
+
+var _World2 = _interopRequireDefault(_World);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Reflect = function () {
+  function Reflect() {
+    _classCallCheck(this, Reflect);
+  }
+
+  _createClass(Reflect, null, [{
+    key: 'init',
+    value: function init() {
+
+      Reflect.vivisble = false;
+
+      Reflect.element = document.getElementById('display');
+      Reflect.ctx = Reflect.element.getContext('2d');
+
+      Reflect.mode = 0; // 0 = nicht vorhanden, 1 = festes Ende, 2 = loses Ende
+    }
+  }, {
+    key: 'draw',
+    value: function draw() {
+
+      if (Reflect.mode == 0) return;
+
+      if (Reflect.mode == 1) Reflect.ctx.fillStyle = 'black';else Reflect.ctx.fillStyle = 'rgb(75,150,255)';
+      Reflect.ctx.fillRect(parseInt(Reflect.element.getAttribute('width')) - 10, 0, 10, 500);
+    }
+  }, {
+    key: 'toggle',
+    value: function toggle() {}
+  }]);
+
+  return Reflect;
+}();
+
+exports.default = Reflect;
+
+},{"./Wave.js":10,"./World.js":11}],8:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
     value: true
 });
 exports.StaticInterface = exports.UserInterface = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+var _Utils = require('./Utils.js');
+
 var _World = require('./World.js');
 
 var _World2 = _interopRequireDefault(_World);
-
-var _Utils = require('./Utils.js');
 
 var _PerformanceAnalyzer = require('./PerformanceAnalyzer.js');
 
 var _Wave = require('./Wave.js');
 
 var _Main = require('./../Main.js');
+
+var _Circle = require('./Circle');
+
+var _LongitudinalHandler = require('./LongitudinalHandler.js');
+
+var _LongitudinalHandler2 = _interopRequireDefault(_LongitudinalHandler);
+
+var _Reflect = require('./Reflect');
+
+var _Reflect2 = _interopRequireDefault(_Reflect);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -932,21 +1093,9 @@ var UserInterface = exports.UserInterface = function () {
             var buttonContent = document.createElement('div');
             buttonContent.setAttribute('class', 'buttons');
 
-            var playButton = (0, _Utils.generateIcon)('fa-play fa-3x');
-            playButton.addEventListener('click', function () {
-                _World2.default.waves[_interface.waveid].start();
-            });
-
-            buttonContent.appendChild(playButton);
-
-            var stopButton = (0, _Utils.generateIcon)('fa-pause fa-3x');
-            stopButton.addEventListener('click', function () {
-                _World2.default.waves[_interface.waveid].stop();
-            });
-
-            buttonContent.appendChild(stopButton);
-
+            // Erstelle einen Knopf zum Ändern der Farbe
             var colorButton = (0, _Utils.generateIcon)('fa-paint-brush fa-3x');
+            colorButton.setAttribute('title', 'Farbe ändern');
             colorButton.addEventListener('click', function () {
 
                 var colorPicker = document.getElementById('color-picker');
@@ -964,20 +1113,23 @@ var UserInterface = exports.UserInterface = function () {
 
             buttonContent.appendChild(colorButton);
 
+            // Erstelle einen Knopf zum Ändern der Ausbreitungsrichtung
             var reverseButton = (0, _Utils.generateIcon)('fa-arrow-left fa-3x');
+            reverseButton.setAttribute('title', 'Ausbreitungsrichtung ändern');
             reverseButton.addEventListener('click', function () {
                 _World2.default.waves[_interface.waveid].reverse = !_World2.default.waves[_interface.waveid].reverse;
             });
 
             buttonContent.appendChild(reverseButton);
 
-            var resetButton = (0, _Utils.generateIcon)('fa-stop fa-3x');
-            resetButton.addEventListener('click', function () {
-                _World2.default.waves[_interface.waveid].restart();
-                _World2.default.waves[_interface.waveid].setTime(0);
+            // Erstelle einen Knopf zum Anzeigen der Wellenlänge
+            var waveLengthButton = (0, _Utils.generateIcon)('fa-stop fa-3x');
+            waveLengthButton.setAttribute('title', 'Wellenlänge anzeigen');
+            waveLengthButton.addEventListener('click', function () {
+                _World2.default.waves[_interface.waveid].showWaveLength = !_World2.default.waves[_interface.waveid].showWaveLength;
             });
 
-            buttonContent.appendChild(resetButton);
+            buttonContent.appendChild(waveLengthButton);
 
             this.content.appendChild(buttonContent);
 
@@ -987,8 +1139,7 @@ var UserInterface = exports.UserInterface = function () {
             this.addSlider('Amplitude', (0, _Utils.createSlider)(0, 2, 0.01, _World2.default.waves[this.waveid].amplitude / 100), 'amplitude');
             this.addSlider('Frequenz', (0, _Utils.createSlider)(0.001, 0.05, 0.00005, _World2.default.waves[this.waveid].frequency), 'frequency');
             this.addSlider('Ausbreitungsgeschwindigkeit', (0, _Utils.createSlider)(0, 15, 0.1, _World2.default.waves[this.waveid].c), 'c');
-            this.addSlider('Phasenverschiebung', (0, _Utils.createSlider)(0, 360, 1, _World2.default.waves[this.waveid].phi / (2 * Math.PI / 360)), 'phi');
-            this.addSlider('Zeit', (0, _Utils.createSlider)(0, 1500, 1, _World2.default.waves[this.waveid].time), 'time');
+            this.addSlider('Phasenverschiebung', (0, _Utils.createSlider)(-360, 360, 1, _World2.default.waves[this.waveid].phi / (2 * Math.PI / 360)), 'phi');
         }
 
         /**
@@ -1021,21 +1172,10 @@ var UserInterface = exports.UserInterface = function () {
 
             var oldValue = slider.value;
 
-            if (key == 'time') slider.addEventListener('mousedown', function () {
-                _World2.default.waves[_interface.waveid].stop();
-            });
-
             var interval = setInterval(function () {
 
                 var wave = _World2.default.waves[_interface.waveid];
                 var value = slider.value;
-
-                if (key == 'time' && wave.running) {
-                    var time = wave.time;
-                    output.innerHTML = time;
-                    slider.value = time;
-                    return;
-                }
 
                 if (oldValue == value) return;
 
@@ -1053,10 +1193,6 @@ var UserInterface = exports.UserInterface = function () {
                         wave.setPhi(value * (2 * Math.PI / 360));
                         break;
 
-                    case 'time':
-                        wave.setTime(value);
-                        break;
-
                     default:
                         wave[key] = value;
                         break;
@@ -1064,7 +1200,6 @@ var UserInterface = exports.UserInterface = function () {
                 }
 
                 _interface.update();
-                wave.setTime(wave.time);
             }, _PerformanceAnalyzer.RESOLUTION * 10);
 
             this.intervals.push(interval);
@@ -1169,6 +1304,13 @@ var UserInterface = exports.UserInterface = function () {
                 clearInterval(this.intervals[i]);
             }
 
+            var combinedWaves = [];
+
+            for (var _i = 0; _i < _World2.default.waves[0].waves.length; _i++) {
+
+                if (_World2.default.waves[0].waves[_i] == _World2.default.waves[this.waveid]) _World2.default.waves[0].removeWave(_World2.default.waves[this.waveid]);
+            }
+
             delete _World2.default.waves[this.waveid];
             CONTAINER.removeChild(this.wrapper);
         }
@@ -1196,6 +1338,9 @@ var UserInterface = exports.UserInterface = function () {
     return UserInterface;
 }();
 
+// Farben für die Wellen
+
+
 var colors = ['red', 'yellow', 'olive', 'blue', 'purple', 'chartreuse', 'lightblue', '#00ff98'];
 
 var StaticInterface = exports.StaticInterface = function () {
@@ -1211,34 +1356,142 @@ var StaticInterface = exports.StaticInterface = function () {
             StaticInterface.interfaces = [];
 
             StaticInterface.addWaveButton = document.getElementById('addwave-button');
+
+            // Füge eine neue Welle hinzu
             StaticInterface.addWaveButton.addEventListener('click', function () {
 
                 StaticInterface.index += 1;
 
                 var wave = _World2.default.createWave(1, 0.005, 100);
-
-                console.log(_World2.default.waves);
-
-                try {
-                    wave.color = colors[StaticInterface.index - 1];
-                } catch (e) {
-                    wave.color = 'orange';
-                } finally {
-                    wave.start();
-                    wave.interface.update();
-                }
+                wave.color = (0, _Utils.generateColor)();
+                wave.start();
+                wave.interface.update();
             });
 
+            var startStopButton = document.getElementById('start-stop-all');
             var editCircleButton = document.getElementById('edit-circle-button');
             var editCircleDialogue = document.getElementById('edit-circle');
             var waveSelect = document.getElementById('wave-select');
             var finishedButton = document.getElementById('circle-finished-button');
             var toggleButton = document.getElementById('circle-toggle-button');
+            var startLongButton = document.getElementById('start-longitudinal');
+            var reflectButton = document.getElementById('reflect');
+            var reflectDialogue = document.getElementById('reflect-dialogue');
+            var mainTime = document.getElementById('main-time');
+            var reflectButtons = [document.getElementById('reflect-0'), document.getElementById('reflect-1'), document.getElementById('reflect-2')];
 
             var dialogueVisible = false;
+            var wavesRunning = true;
+            var reflectDialogueVisible = false;
+
+            // Ändere die Weltzeit
+            setInterval(function () {
+
+                if (wavesRunning) {
+
+                    if (_World2.default.waves[0] instanceof _Wave.Wave) {
+                        mainTime.value = _World2.default.waves[0].time;
+                    }
+
+                    mainTime.value = _World2.default.waves[1].time;
+                    return;
+                }
+
+                for (var i = 0; i < _World2.default.waves.length; i++) {
+
+                    if (!(_World2.default.waves[i] instanceof _Wave.Wave)) continue;
+
+                    _World2.default.waves[i].stop();
+                    _World2.default.waves[i].setTime(mainTime.value);
+                    startStopButton.firstChild.setAttribute('class', 'fa fa-play');
+                }
+            }, 10 * _PerformanceAnalyzer.RESOLUTION);
+
+            mainTime.addEventListener('mousedown', function () {
+
+                wavesRunning = false;
+            });
+
+            // Ändere die Reflexion
+
+            var _loop = function _loop(i) {
+
+                reflectButtons[i].addEventListener('click', function () {
+
+                    _Reflect2.default.mode = i;
+
+                    reflectDialogueVisible = false;
+                    reflectDialogue.style.display = 'none';
+
+                    switch (i) {
+
+                        case 0:
+
+                            for (var k = 0; k < _World2.default.waves.length; k++) {
+
+                                _World2.default.waves[k].reflected = false;
+                            }
+
+                            break;
+
+                        default:
+
+                            for (var _k = 0; _k < _World2.default.waves.length; _k++) {
+
+                                _World2.default.waves[_k].reflected = true;
+                            }
+
+                            break;
+
+                    }
+                });
+            };
+
+            for (var i = 0; i < reflectButtons.length; i++) {
+                _loop(i);
+            }
+
+            reflectButton.addEventListener('click', function () {
+
+                if (reflectDialogueVisible) {
+                    reflectDialogue.style.display = 'none';
+                } else {
+                    editCircleDialogue.style.display = 'none';
+                    reflectDialogue.style.display = 'block';
+                    dialogueVisible = false;
+                }
+
+                reflectDialogueVisible = !reflectDialogueVisible;
+            });
+
+            startStopButton.addEventListener('click', function () {
+
+                if (wavesRunning) {
+                    startStopButton.firstChild.setAttribute('class', 'fa fa-play');
+                    _World2.default.stopAllWaves();
+                } else {
+                    startStopButton.firstChild.setAttribute('class', 'fa fa-pause');
+                    _World2.default.startAllWaves();
+                }
+
+                wavesRunning = !wavesRunning;
+            });
+
+            startLongButton.addEventListener('click', function () {
+
+                if (!_LongitudinalHandler2.default.running) {
+
+                    _LongitudinalHandler2.default.init();
+                    startLongButton.innerHTML = 'Transversale Welle';
+                    _Circle.SmallCircleDisplay.changeWave(_World2.default.waves[0]);
+                    StaticInterface.addWaveButton.style.display = 'none';
+                    reflectButton.style.display = 'none';
+                } else location.reload();
+            });
 
             toggleButton.addEventListener('click', function () {
                 _Main.mainCircle.toggle();
+                _Circle.SmallCircleDisplay.toggle();
             });
 
             finishedButton.addEventListener('click', function () {
@@ -1258,7 +1511,10 @@ var StaticInterface = exports.StaticInterface = function () {
                     editCircleDialogue.style.display = 'none';
                 } else {
 
+                    reflectDialogue.style.display = 'none';
+                    reflectDialogueVisible = false;
                     editCircleDialogue.style.display = 'block';
+
                     waveSelect.innerHTML = '';
 
                     for (var i = 0; i < _World2.default.waves.length; i++) {
@@ -1271,7 +1527,7 @@ var StaticInterface = exports.StaticInterface = function () {
                         }
                     }
 
-                    waveSelect.innerHTML += '<option index="0">Kombinierte Welle</option>';
+                    if (!_LongitudinalHandler2.default.running) waveSelect.innerHTML += '<option index="0">Kombinierte Welle</option>';
                 }
 
                 dialogueVisible = !dialogueVisible;
@@ -1289,16 +1545,19 @@ var StaticInterface = exports.StaticInterface = function () {
             var waveIndex = element.getAttribute('index');
             var wave = _World2.default.waves[waveIndex];
 
-            console.log(_World2.default.waves);
-
-            if (wave instanceof _Wave.Wave) _Main.mainCircle.setWaves([wave]);else _Main.mainCircle.setWaves(wave.waves);
+            if (wave instanceof _Wave.Wave) {
+                _Main.mainCircle.setWaves([wave]);
+                _Circle.SmallCircleDisplay.changeWave(wave);
+            } else {
+                _Main.mainCircle.setWaves(wave.waves);
+            }
         }
     }]);
 
     return StaticInterface;
 }();
 
-},{"./../Main.js":1,"./PerformanceAnalyzer.js":5,"./Utils.js":8,"./Wave.js":9,"./World.js":10}],8:[function(require,module,exports){
+},{"./../Main.js":1,"./Circle":2,"./LongitudinalHandler.js":4,"./PerformanceAnalyzer.js":5,"./Reflect":7,"./Utils.js":9,"./Wave.js":10,"./World.js":11}],9:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1371,7 +1630,16 @@ var getText = exports.getText = function getText(label, value) {
   return '<div><span>' + label + ': </span>' + value + '</div>';
 };
 
-},{}],9:[function(require,module,exports){
+var generateColor = exports.generateColor = function generateColor() {
+
+  var r = Math.round(Math.random() * 255);
+  var g = Math.round(Math.random() * 255);
+  var b = Math.round(Math.random() * 255);
+
+  return 'rgb(' + r + ',' + g + ',' + b + ')';
+};
+
+},{}],10:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1390,6 +1658,10 @@ var _PerformanceAnalyzer = require('./PerformanceAnalyzer.js');
 var _Point = require('./Point.js');
 
 var _Point2 = _interopRequireDefault(_Point);
+
+var _Reflect = require('./Reflect.js');
+
+var _Reflect2 = _interopRequireDefault(_Reflect);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -1412,23 +1684,27 @@ var Wave = function () {
   function Wave(c, frequency, amplitude) {
     _classCallCheck(this, Wave);
 
+    // Werte, welche die grundlegende Welle definieren
     this.c = c;
     this.frequency = frequency;
     this.amplitude = amplitude;
 
-    this.time = 0;
     this.phi = 0;
+    this.time = 0;
 
+    // Boolsche Variablen für verschiedene Eigenschaften
     this.reverse = false;
     this.running = false;
     this.visible = true;
     this.transversal = true;
+    this.reflected = false;
+    this.showWaveLength = false;
 
+    // Variablen zur grafischen Darstellung
     this.color = 'orange';
     this.strokeWidth = 3;
 
-    this.highlightedPoints = [];
-
+    // Oberfläche zum Bearbeiten der Welle
     this.interface = null;
 
     this.init();
@@ -1461,14 +1737,22 @@ var Wave = function () {
     // ###############################################################################################  //
 
     /**
+     * Erstelle eine Kopie einer vorhandenen Welle
+     * @param {Wave} wave 
+     * @memberof Wave
+     */
+
+  }, {
+    key: 'setPhi',
+
+
+    /**
      * Ändere die Phasenverschiebung der Welle
      * 
      * @param {number} phi Wird in Bogenmaß angegeben 
      * @memberof Wave
      */
 
-  }, {
-    key: 'setPhi',
     value: function setPhi(phi) {
 
       this.phi = phi;
@@ -1515,6 +1799,7 @@ var Wave = function () {
 
       if (!this.visible) return;
 
+      // Zeichne eine transversale Welle
       if (this.transversal) {
 
         _Display2.default.ctx.beginPath();
@@ -1541,21 +1826,49 @@ var Wave = function () {
         }
 
         _Display2.default.ctx.stroke();
+
+        // Zeichne die Wellenlänge
+        if (this.showWaveLength) {
+
+          var startPoint = this.points[Math.round(50 / _PerformanceAnalyzer.RESOLUTION)];
+          var waveLength = this.c / this.frequency;
+          var y = 249 - Math.sin(startPoint.angle) * this.amplitude;
+
+          _Display2.default.ctx.fillStyle = 'red';
+          _Display2.default.ctx.fillRect(startPoint.x, y, waveLength, 3);
+          _Display2.default.drawSimplePoint(startPoint.x, y, 'black', 5);
+          _Display2.default.drawSimplePoint(startPoint.x + waveLength, y + 2, 'black', 5);
+        }
       } else {
 
+        // Zeichne eine longitudinale Welle
         for (var _i = 0; _i < _Display2.default.getPoints(); _i++) {
 
           var point = this.points[_i];
 
           var x = point.x + Math.sin(point.angle) * this.amplitude;
 
-          //if(!this.points[i].still) {
-
-
           _Display2.default.drawLongitudinalPoint(point, this.amplitude, this.color);
-
-          //}
         }
+      }
+
+      // Reflektiere die Welle falls erfordert
+      if (this.reflected && this.c * this.time > _Display2.default.width) {
+
+        // Erstelle eine Kopie in die umgekehrte Richtung
+        var newWave = Wave.copyWave(this);
+
+        newWave.reflected = false;
+        newWave.reverse = !this.reverse;
+
+        if (_Reflect2.default.mode == 1) {
+          newWave.setPhi(this.phi + 3.14);
+        }
+
+        newWave.setTime(this.time - _Display2.default.width / this.c);
+        newWave.draw();
+
+        new CombinedWave([this, newWave], 'green').draw();
       }
     }
 
@@ -1591,6 +1904,7 @@ var Wave = function () {
         var lambda = this.c * T;
 
         // Überprüfe, ob die Welle den Punkt schon erreicht hat
+        // Dies kommt nur bei transversalen Wellen zum Einsatz
         if (this.time * this.c >= i * _PerformanceAnalyzer.RESOLUTION || !this.transversal) {
 
           var angle = 2 * Math.PI * (this.time / T - i * _PerformanceAnalyzer.RESOLUTION / lambda) + this.phi;
@@ -1630,6 +1944,18 @@ var Wave = function () {
     key: 'restart',
     value: function restart() {
       this.time = 0;
+    }
+  }], [{
+    key: 'copyWave',
+    value: function copyWave(wave) {
+
+      var newWave = new Wave(wave.c, wave.frequency, wave.amplitude);
+      newWave.reverse = wave.reverse;
+      newWave.phi = wave.phi;
+      newWave.time = wave.time;
+      newWave.color = wave.color;
+
+      return newWave;
     }
   }]);
 
@@ -1676,12 +2002,26 @@ var CombinedWave = function () {
 
       this.removeQueue = [];
     }
+
+    /**
+     * Füge eine neue Welle hinzu
+     * @param {Wave} wave 
+     * @memberof CombinedWave
+     */
+
   }, {
     key: 'addWave',
     value: function addWave(wave) {
 
       this.waves.push(wave);
     }
+
+    /**
+     * Lösche eine Welle
+     * @param {Wave} wave 
+     * @memberof CombinedWave
+     */
+
   }, {
     key: 'removeWave',
     value: function removeWave(wave) {
@@ -1696,7 +2036,7 @@ var CombinedWave = function () {
 exports.Wave = Wave;
 exports.CombinedWave = CombinedWave;
 
-},{"./Display.js":3,"./PerformanceAnalyzer.js":5,"./Point.js":6}],10:[function(require,module,exports){
+},{"./Display.js":3,"./PerformanceAnalyzer.js":5,"./Point.js":6,"./Reflect.js":7}],11:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1712,6 +2052,8 @@ var _Display = require('./Display.js');
 var _Display2 = _interopRequireDefault(_Display);
 
 var _UserInterface = require('./UserInterface.js');
+
+var _Circle = require('./Circle');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -1819,6 +2161,26 @@ var World = function () {
 
         if (wave != undefined && wave instanceof _Wave.Wave) wave.init();
       }
+
+      _Circle.SmallCircleDisplay.changeWave(_Circle.SmallCircleDisplay.wave);
+    }
+  }, {
+    key: 'stopAllWaves',
+    value: function stopAllWaves() {
+
+      for (var i = 0; i < World.waves.length; i++) {
+
+        if (World.waves[i] instanceof _Wave.Wave) World.waves[i].stop();
+      }
+    }
+  }, {
+    key: 'startAllWaves',
+    value: function startAllWaves() {
+
+      for (var i = 0; i < World.waves.length; i++) {
+
+        if (World.waves[i] instanceof _Wave.Wave) World.waves[i].start();
+      }
     }
   }]);
 
@@ -1829,4 +2191,4 @@ World.waves = new Array();
 
 exports.default = World;
 
-},{"./Display.js":3,"./UserInterface.js":7,"./Wave.js":9}]},{},[1]);
+},{"./Circle":2,"./Display.js":3,"./UserInterface.js":8,"./Wave.js":10}]},{},[1]);

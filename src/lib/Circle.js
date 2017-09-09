@@ -1,6 +1,8 @@
-import {drawArrow} from './Utils.js'
-import Display from './Display.js'
-import {RESOLUTION} from './PerformanceAnalyzer.js'
+import {drawArrow}         from './Utils.js'
+import Display             from './Display.js'
+import {RESOLUTION}        from './PerformanceAnalyzer.js'
+import Point               from './Point.js'
+import LongitudinalHandler from './LongitudinalHandler.js'
 
 export  class Circle {
 
@@ -39,6 +41,10 @@ export  class Circle {
       Display.element.style.left = '0';
       Display.smallClockElement.style.left = '0'
     } else {
+
+      if(LongitudinalHandler.running)
+        return
+
       this.element.style.display = 'block';
       Display.element.style.left = '500px';
       Display.smallClockElement.style.left = '500px'
@@ -55,7 +61,9 @@ export  class Circle {
    * @memberof Circle
    */
 
-  draw(pointIndex) {
+  draw(_pointIndex) {
+
+    let pointIndex = Math.round(_pointIndex)
 
     if(this.visible && this.waves != null) {
 
@@ -89,15 +97,18 @@ export  class Circle {
 
       this.ctx.lineWidth = 3;
 
+      let offset = {
+        x: 0,
+        y: 0
+      }
+
       // Zeichne einen neuen Zeiger für jede Welle
       for(var i = 0; i < this.waves.length; i++) {
 
         var wave  = this.waves[i];
         var point = wave.points[pointIndex];
+        console.log(pointIndex)
         var angle = point.angle;
-
-        var newX = Math.cos(angle)*wave.amplitude+marginLeft;
-        var newY = -Math.sin(angle)*wave.amplitude+250;
 
         this.ctx.beginPath();
         this.ctx.strokeStyle = wave.color;
@@ -115,23 +126,21 @@ export  class Circle {
 
         }
 
-        // Zeichne den Pfeil
-        if(i != 0) {
-          drawArrow(this.ctx,x,y,newX-marginLeft+x,newY-250+y); // Anschließende Pfeile
-        } else {
-          drawArrow(this.ctx, x,y, newX, newY); // Erster Pfeil
-        }
+        offset.x = Math.cos(angle)*wave.amplitude
+        offset.y = -Math.sin(angle)*wave.amplitude
+
+        drawArrow(this.ctx,x,y,x+offset.x, y+offset.y)
 
         this.ctx.stroke();
 
-        x = newX;
-        y = newY;
+        x += offset.x
+        y += offset.y
 
         // Hebe den Punkt hervor
-        Display.drawPointOnWave(point, wave.amplitude, wave.color, 5);
+        if(!LongitudinalHandler.running && wave.visible)
+          Display.drawPointOnWave(point, wave.amplitude, wave.color, 5);
 
-        gesY += newY;
-
+        gesY += offset.y;
 
       }
 
@@ -150,7 +159,18 @@ export  class Circle {
 
 }
 
+/**
+ * Klasse zum Anzeigen vieler kleiner Zeigermodelle für
+ * mehrere Punkte
+ * @class SmallCircleDisplay
+ */
+
 export class SmallCircleDisplay {
+
+  /**
+   * Initialisiere das Modell mit der gegebenen Welle
+   * @param {Wave} wave 
+   */
 
   static init(wave) {
 
@@ -159,9 +179,12 @@ export class SmallCircleDisplay {
     SmallCircleDisplay.wave    = wave
     SmallCircleDisplay.ctx     = SmallCircleDisplay.element.getContext('2d')
 
+    SmallCircleDisplay.visible = false
+    SmallCircleDisplay.element.style.display = 'none'
+
     let i = 0
 
-    for(let x = 30; x < parseInt(SmallCircleDisplay.element.getAttribute('width')); x += 90) {
+    for(let x = 50; x < parseInt(SmallCircleDisplay.element.getAttribute('width')); x += 90) {
 
       SmallCircleDisplay.circles[i] = new SmallCircle(x)
       i += 1
@@ -170,48 +193,105 @@ export class SmallCircleDisplay {
   
   }
 
+  /**
+   * Ändere die Welle
+   * @param {Wave} wave 
+   */
+  static changeWave(wave) {
+
+    SmallCircleDisplay.wave    = wave
+
+    let i = 0
+
+    for(let x = 50; x < parseInt(SmallCircleDisplay.element.getAttribute('width')); x += 90) {
+
+      SmallCircleDisplay.circles[i] = new SmallCircle(x)
+      i += 1
+
+    }
+    
+  }
+
+  /**
+   * Zeige / Verstecke die Darstellung
+   */
+
+  static toggle() {
+
+    if(SmallCircleDisplay.visible)
+      SmallCircleDisplay.element.style.display = 'none'
+    else
+      SmallCircleDisplay.element.style.display = 'block'
+
+    SmallCircleDisplay.visible = !SmallCircleDisplay.visible
+
+  }
+
+  /**
+   * Zeichne die Zeigermodelle
+   */
+
   static draw() {
+
+    if(!SmallCircleDisplay.visible || !SmallCircleDisplay.wave.visible)
+      return
 
     SmallCircleDisplay.ctx.fillStyle = 'white'
     SmallCircleDisplay.ctx.fillRect(0,0,2000,50)
     SmallCircleDisplay.ctx.strokeStyle = SmallCircleDisplay.wave.color
+    SmallCircleDisplay.ctx.lineWidth = 3
+
+    let wave       = SmallCircleDisplay.wave
 
     for(let i = 0; i < SmallCircleDisplay.circles.length; i++) {
 
+      let dummyPoint = SmallCircleDisplay.circles[i].point
       SmallCircleDisplay.circles[i].draw()
+      
+      if(!LongitudinalHandler.running)
+        Display.drawPointOnWave(dummyPoint,wave.amplitude,'black',3)
 
     }
-
-    //SmallCircleDisplay.ctx.stroke()
 
   }
 
 }
 
+/**
+ * Kleines Zeigermodell
+ */
+
 export class SmallCircle {
+  
+  /**
+   * Erstelle ein neues Zeigermodell mit vorgegebenen x Wert
+   * @param {number} x 
+   */
 
   constructor(x) {
 
     this.radius = 25
     this.x      = x
+    this.point  = SmallCircleDisplay.wave.points[Math.round(this.x / RESOLUTION)]
 
   }
 
+  /**
+   * Zeichne das Zeigermodell
+   */
+
   draw() {
 
-    let point = SmallCircleDisplay.wave.points[Math.round(this.x / RESOLUTION)]
-
-    let angle = point.angle
+    let angle = this.point.angle
 
     let direction = {
-      x: Math.cos(angle),
-      y: Math.sin(angle)
+      x: Math.cos(angle)*25,
+      y: Math.sin(angle)*25
     }
 
-    //drawArrow(SmallCircleDisplay.ctx, this.x, 25, this.x+direction.x, 25-direction.y)
     SmallCircleDisplay.ctx.beginPath()
     SmallCircleDisplay.ctx.moveTo(this.x, 25)
-    SmallCircleDisplay.ctx.lineTo(this.x+direction.x, this.y+direction.y)
+    SmallCircleDisplay.ctx.lineTo(this.x+direction.x, 25-direction.y)
     SmallCircleDisplay.ctx.stroke()
 
   }

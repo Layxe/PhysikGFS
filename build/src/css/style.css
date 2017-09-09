@@ -138,6 +138,39 @@ output {
 
 /* ### Statische UI Elemente ### */
 
+#info-log {
+    display: inline-block;
+    color: white;
+    float: right !important;
+    margin-right: 5px;
+    margin-top: 10px;
+}
+
+#main-time {
+    min-width: 400px;
+    width: 35%;
+    float: left;
+    margin-left: 10px;
+    margin-top: 12px;
+}
+
+#reflect-dialogue {
+    width: 300px;
+    position: absolute;
+    left: 0;
+    right: 0;
+    margin: 50px auto;
+    top: 0;
+    background-color: white;
+    border: 1px solid black;
+    padding: 10px;
+    text-align: center;
+}
+
+#reflect-dialogue > div {
+    margin-bottom: 5px;
+}
+
 #edit-circle {
     width: 300px;
     position: absolute;

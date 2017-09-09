@@ -64,14 +64,14 @@ export class PerformanceAnalyzer {
 
     static optimizeProgram() {
 
-        if(PerformanceAnalyzer.averageFPS < 35 && RESOLUTION < 6) {
+        if(PerformanceAnalyzer.averageFPS < 35 && RESOLUTION < 10) {
 
             console.log('System optimization!')
 
             RESOLUTION += 1
             World.reInit()
 
-        } else if(PerformanceAnalyzer.averageFPS > 60 && RESOLUTION > 1) {
+        } else if(PerformanceAnalyzer.averageFPS > 52 && RESOLUTION > 1) {
 
             RESOLUTION -= 1
             World.reInit()
