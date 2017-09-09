@@ -8,12 +8,16 @@ Das Programm wurde in Javascript mit dem ES6 Standart geschrieben. Um diesen Cod
 Standarts übersetzt und in eine Datei /build/src/js/main.js zusammengefügt. Zum Debuggen eignet sich die Datei /build/src/js/main-debug.js .
 Diese Kompilierung / Übersetzung wird durch eine Gulpjs Pipeline vereinfacht. Um lokal die Dateien zu editieren muss also Gulp aktiviert werden
 
-> gulp
+> $ gulp
+
+Gulp muss davor natürlich installiert werden, dies geschieht mit diesem Befehl ( benötigt wird ebenso NodeJS sowie NPM )
+
+> $ npm install --global gulp-cli
 
 Der 'default' Task überprüft hierbei ob die Datein in src/ und src/lib/ verändert wurden und führt davon ausgehend beim Speichern den 'build' Task aus
 
 ## Funktionen
-- Grafische Darstellung einer 1 dimensionalen transversal Welle
+- Grafische Darstellung einer 1 dimensionalen transversalen sowie longitudinalen Welle
 - Überlagerung beliebig vieler Wellen
 - Darstellung der Wellen mit Hilfe des Zeigermodells 
 - Änderung der Amplitude, Frequenz, Ausbreitungsgeschwindigkeit und Phasenverschiebung
@@ -21,10 +25,7 @@ Der 'default' Task überprüft hierbei ob die Datein in src/ und src/lib/ verän
 ## Anforderungen
 - Javascriptfähiger Browser
 ## Geplante Funktionen
-- Benutzerfreundliche Oberfläche
-  - Änderung der Überlagerung
 - Ausgearbeitetes Zeigermodell
-- Darstellung longitudinaler Wellen
 - Reflexion an losem sowie festem Ende
 - ( Darstellung 2 dimensionaler Wellen )
 ## Live Demo
