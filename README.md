@@ -4,7 +4,7 @@ Das Programm dient zur Darstellung verschiedenster Wellen und Schwingungen
 ---
 
 ## Programm installieren
-Zum Installieren müssen sie nur den ./build Ordner herunterladen und die index.html Datei in ihrem Browser der Wahl öffnen
+Zum Installieren müssen Sie nur den ./build Ordner herunterladen und die index.html Datei in Ihrem Browser der Wahl öffnen
 
 ## Technische Informationen
 Das Programm wurde in Javascript mit dem ES6 Standart geschrieben. Um diesen Code für jeden Browser zugänglich zu machen wird er mit Babel, sowie Browserify in alte
