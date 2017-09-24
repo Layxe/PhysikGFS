@@ -400,11 +400,15 @@ export class StaticInterface {
 
             if(wavesRunning) {
 
-                if(World.waves[0] instanceof Wave) {
-                    mainTime.value = World.waves[0].time
+                for(let i = 0; i < World.waves.length; i++) {
+                    
+                    if(World.waves[i] instanceof Wave) {
+                        mainTime.value = World.waves[i].time
+                        return
+                    }
+
                 }
-           
-                mainTime.value = World.waves[1].time
+
                 return
             }
 

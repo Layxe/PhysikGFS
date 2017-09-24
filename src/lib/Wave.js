@@ -195,7 +195,7 @@ class Wave {
 
         let x = point.x + Math.sin(point.angle) * this.amplitude;
 
-          Display.drawLongitudinalPoint(point, this.amplitude, this.color)
+        Display.drawLongitudinalPoint(point, this.amplitude, this.color)
 
       }
 

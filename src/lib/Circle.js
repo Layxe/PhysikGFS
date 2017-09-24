@@ -256,13 +256,13 @@ export class SmallCircleDisplay {
 
     SmallCircleDisplay.ctx.fillStyle = 'white'
     SmallCircleDisplay.ctx.fillRect(0,0,2000,50)
-    SmallCircleDisplay.ctx.strokeStyle = SmallCircleDisplay.wave.color
     SmallCircleDisplay.ctx.lineWidth = 3
 
     let wave       = SmallCircleDisplay.wave
 
     for(let i = 0; i < SmallCircleDisplay.circles.length; i++) {
 
+      SmallCircleDisplay.ctx.strokeStyle = SmallCircleDisplay.wave.color
       let dummyPoint = SmallCircleDisplay.circles[i].point
       SmallCircleDisplay.circles[i].draw()
       
@@ -313,10 +313,37 @@ export class SmallCircle {
       y: Math.sin(angle)*25
     }
 
+    // Zeichne den Zeiger
     SmallCircleDisplay.ctx.beginPath()
     SmallCircleDisplay.ctx.moveTo(this.x, 25)
     SmallCircleDisplay.ctx.lineTo(this.x+direction.x, 25-direction.y)
     SmallCircleDisplay.ctx.stroke()
+    
+    // Zeichne den Strich nach oben
+    SmallCircleDisplay.ctx.lineWidth = 1
+    SmallCircleDisplay.ctx.strokeStyle = 'black'
+    SmallCircleDisplay.ctx.setLineDash([1,10])
+    SmallCircleDisplay.ctx.beginPath()
+    SmallCircleDisplay.ctx.moveTo(this.x, 5)
+    SmallCircleDisplay.ctx.lineTo(this.x, 25)
+    SmallCircleDisplay.ctx.stroke()
+    SmallCircleDisplay.ctx.setLineDash([0])
+    SmallCircleDisplay.ctx.lineWidth = 3
+
+    Display.ctx.setLineDash([1,10])
+    Display.ctx.beginPath()
+    Display.ctx.moveTo(this.x, 50)
+    Display.ctx.lineTo(this.x, 600)
+    Display.ctx.stroke()
+    Display.ctx.setLineDash([0])
+
+    if(SmallCircleDisplay.wave.transversal)
+      return;
+
+    let x = Math.cos(this.point.angle)*SmallCircleDisplay.wave.amplitude
+    let y = 250
+
+    Display.drawSimplePoint(this.point.x + x,y,'red', 5)
 
   }
 

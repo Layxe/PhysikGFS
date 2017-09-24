@@ -45,9 +45,19 @@ class World {
 
     let wave = new Wave(c,frequency,amplitude);
     World.waves.push(wave)
-    console.log(World.waves)
     wave.interface = new UserInterface(World.waves.length-1)
     wave.interface.update()
+    
+    for(let i = 0; i < World.waves.length; i++) {
+
+      if(World.waves[i] instanceof Wave && World.waves[i] != wave) {
+
+        wave.time = World.waves[i].time
+
+      }
+
+    }
+
     return wave; 
 
   }

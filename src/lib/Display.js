@@ -54,10 +54,8 @@ class Display {
 
     static drawLongitudinalPoint(point, amplitude, color) {
 
-      let x = point.x - Math.cos(point.angle) * amplitude;
-      let y = 250+(-Math.sin(point.angle) * amplitude); // -sin weil das Koordinatensystem in y Richtung umgedreht ist
-
-      y = 250;
+      let x = point.x + Math.cos(point.angle) * amplitude;
+      let y = 250;
 
       Display.ctx.fillStyle = color;
 
@@ -94,7 +92,7 @@ class Display {
   }
 
   /**
-   * Zeichne einen speziellen Punkt auf einer Welle
+   * Zeichne einen speziellen Punkt auf einer transversalen Welle
    * 
    * @static
    * @param {Point} point 
@@ -133,7 +131,6 @@ class Display {
     Display.ctx.fillStyle = color;
     Display.ctx.beginPath();
     Display.ctx.arc(x,y,radius,0, 2*Math.PI);
-    Display.ctx.fillStyle = 'black';
     Display.ctx.fill();
 
   }
@@ -217,7 +214,7 @@ static drawCombinedWave(waves,color) {
     }
 
     Display.ctx.stroke();
-
+ 
   }
 
   /**
