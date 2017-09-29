@@ -1307,7 +1307,7 @@ var UserInterface = exports.UserInterface = function () {
             this.addSlider('Amplitude', (0, _Utils.createSlider)(0, 2, 0.01, _World2.default.waves[this.waveid].amplitude / 100), 'amplitude');
             this.addSlider('Frequenz', (0, _Utils.createSlider)(0.001, 0.05, 0.00005, _World2.default.waves[this.waveid].frequency), 'frequency');
             this.addSlider('Ausbreitungsgeschwindigkeit', (0, _Utils.createSlider)(0, 15, 0.1, _World2.default.waves[this.waveid].c), 'c');
-            this.addSlider('Phasenverschiebung', (0, _Utils.createSlider)(-360, 360, 1, _World2.default.waves[this.waveid].phi / (2 * Math.PI / 360)), 'phi');
+            this.addSlider('Phasenverschiebung', (0, _Utils.createSlider)(0, 720, 1, _World2.default.waves[this.waveid].phi / (2 * Math.PI / 360)), 'phi');
         }
 
         /**
